@@ -8,7 +8,7 @@ from flask.sessions import SecureCookieSessionInterface
 def read_session_file(session_dir, session_filename):
     """讀取 Flask session 文件內容"""
     session_path = os.path.join(session_dir, session_filename)
-    
+    #測試
     try:
         with open(session_path, 'rb') as f:
             data = pickle.load(f)
