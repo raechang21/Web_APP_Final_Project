@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}黑暗三角測驗介紹 - Personality Paradox{% endblock %}
+
+{% block content %}
+<!-- 進度指示器 -->
+<div class="step-indicator mb-4">
+    <div class="step completed">1. MBTI</div>
+    <div class="step completed">2. Big Five</div>
+    <div class="step completed">3. 星座</div>
+    <div class="step active">4. 黑暗三角</div>
+    <div class="step">5. 結果</div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        🔍 黑暗三角人格測驗（選做）
+    </div>
+    <div class="card-body p-4">
+        <h5 class="mb-3">什麼是黑暗三角人格？</h5>
+        <p class="text-muted">
+            黑暗三角（Dark Triad）是心理學中用來描述三種相關但獨立的人格特質的概念。
+            本測驗題目參考張益慈、詹雨臻、陳學志（2021）。
+        </p>
+
+        <div class="alert alert-info">
+            <h6 class="alert-heading">💡 為什麼要做這個測驗？</h6>
+            <ul class="mb-0">
+                <li>更全面地了解自己的人格光譜</li>
+                <li>這些特質在適度範圍內可能是優勢（如自信、策略思維、冷靜決策）</li>
+                <li>幫助識別潛在的成長空間</li>
+                <li>結合 MBTI 和 Big Five 提供多維度分析</li>
+            </ul>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <a href="{{ url_for('zodiac_selection') }}" class="btn btn-secondary">
+                ← 上一步
+            </a>
+            <div>
+                <a href="{{ url_for('skip_dark_triad') }}" class="btn btn-outline-secondary me-2">
+                    跳過此測驗
+                </a>
+                <a href="{{ url_for('dark_triad_test') }}" class="btn btn-primary">
+                    開始測驗 →
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 科學背景 -->
+<div class="card mt-3">
+    <div class="card-body">
+        <h6 class="card-title">📚 科學背景</h6>
+        <p class="small text-muted mb-0">
+            黑暗三角測驗是心理學界廣泛使用的標準化工具。
+            研究顯示，這些特質與領導力、創業精神、談判能力等也有正向關聯，
+            關鍵在於如何平衡與運用。
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 頁面載入動畫
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 150);
+        });
+    });
+</script>
+{% endblock %}

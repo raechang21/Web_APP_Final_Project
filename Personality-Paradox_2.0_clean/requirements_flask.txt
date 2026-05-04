@@ -1,0 +1,19 @@
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# Session 管理
+Flask-Session==0.5.0
+
+# 已有的依賴（從原專案）
+plotly==5.17.0
+pandas==2.3.3
+reportlab==4.4.5
+
+# 可選：如果要實作 ChatBot 串流
+# Flask-SSE==1.0.0
+# 或
+# Flask-SocketIO==5.3.5
+# python-socketio==5.10.0
+
+# 已有的 LLM 相關（從原專案）
+# requests  # Ollama client 需要

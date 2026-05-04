@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+
+{% block title %}歡迎 - Personality Paradox{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section 樣式 */
+    .hero-section {
+        text-align: center;
+        padding: 5rem 2rem 4rem 2rem;
+        background: linear-gradient(135deg, #F7F6F3 0%, #FFFFFF 100%);
+    }
+    
+    .hero-icon {
+        font-size: 4.5rem;
+        margin-bottom: 1.5rem;
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: var(--notion-text);
+        margin-bottom: 0.75rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.75rem;
+        color: var(--notion-text-secondary);
+        margin-bottom: 2rem;
+        font-weight: 400;
+    }
+    
+    .hero-description-group {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .hero-tagline {
+        font-size: 1.15rem;
+        color: var(--notion-text-secondary);
+        margin-bottom: 0.5rem;
+        line-height: 1.8;
+    }
+    
+    /* 測驗流程區域 */
+    .journey-section {
+        padding: 4rem 2rem;
+        background: var(--notion-bg);
+    }
+    
+    .journey-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .journey-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .journey-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--notion-text);
+        margin-bottom: 1rem;
+    }
+    
+    .journey-subtitle {
+        font-size: 1.1rem;
+        color: var(--notion-text-secondary);
+    }
+    
+    /* 測驗卡片網格 - 第一排3個 */
+    .test-cards-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto 1.5rem auto;
+    }
+    
+    /* 測驗卡片網格 - 第二排3個 */
+    .test-cards-row-2 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto 3rem auto;
+    }
+    
+    .test-card {
+        background: var(--notion-bg);
+        border: 2px solid var(--notion-border);
+        border-radius: 12px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: default;
+    }
+    
+    .test-card:hover {
+        transform: translateY(-5px);
+        box-shadow: rgba(15, 15, 15, 0.1) 0px 8px 20px;
+    }
+    
+    /* 不同顏色邊框 */
+    .test-card.mbti { border-color: #EB5757; }
+    .test-card.bigfive { border-color: #56C2B2; }
+    .test-card.zodiac { border-color: #F2C94C; }
+    .test-card.dark { border-color: #BB87D1; }
+    .test-card.analysis { border-color: #4A8FE7; }
+    .test-card.chatbot { border-color: #F2994A; }
+    
+    .test-card-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .test-card-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--notion-text);
+        margin-bottom: 0.75rem;
+    }
+    
+    .test-card-description {
+        font-size: 0.95rem;
+        color: var(--notion-text-secondary);
+        line-height: 1.5;
+        margin-bottom: 0;
+    }
+    
+    /* 開始按鈕 */
+    .start-button-container {
+        text-align: center;
+        margin-top: 2rem;
+    }
+        /* 快速登入區域 */
+    .quick-login-section {
+        max-width: 500px;
+        margin: 3rem auto 0 auto;
+        padding: 2rem;
+        background: var(--notion-bg-secondary);
+        border: 1px solid var(--notion-border);
+        border-radius: 12px;
+        text-align: center;
+    }
+    
+    .quick-login-title {
+        font-size: 1.1rem;
+        color: var(--notion-text-secondary);
+        margin-bottom: 1rem;
+    }
+    
+    .quick-login-form {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+    
+    .quick-login-input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--notion-border);
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: var(--notion-font);
+        transition: all 0.3s ease;
+    }
+    
+    .quick-login-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .quick-login-button {
+        padding: 0.75rem 1.5rem;
+        background: var(--notion-text);
+        color: var(--notion-bg);
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+    
+    .quick-login-button:hover {
+        background: var(--notion-text-secondary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .quick-login-error {
+        color: #ef4444;
+        margin-top: 0.75rem;
+        font-size: 0.9rem;
+        display: none;
+    }
+    
+    .divider {
+        max-width: 600px;
+        margin: 3rem auto;
+        text-align: center;
+        position: relative;
+    }
+    
+    .divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: var(--notion-border);
+    }
+    
+    .divider-text {
+        display: inline-block;
+        padding: 0 1rem;
+        background: var(--notion-bg);
+        color: var(--notion-text-secondary);
+        font-size: 0.9rem;
+        position: relative;
+        z-index: 1;
+    }
+        .start-button {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 1rem 3.5rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .start-button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: rgba(74, 143, 231, 0.4) 0px 8px 24px;
+        color: white;
+    }
+    
+    /* 時間提示 */
+    .time-hint {
+        text-align: center;
+        margin-top: 2.5rem;
+        color: var(--primary-color);
+        font-size: 1.05rem;
+        font-weight: 500;
+    }
+    
+    /* 動畫 */
+    .fade-in {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .delay-1 { animation-delay: 0.1s; opacity: 0; animation-fill-mode: forwards; }
+    .delay-2 { animation-delay: 0.2s; opacity: 0; animation-fill-mode: forwards; }
+    .delay-3 { animation-delay: 0.3s; opacity: 0; animation-fill-mode: forwards; }
+    .delay-4 { animation-delay: 0.4s; opacity: 0; animation-fill-mode: forwards; }
+    .delay-5 { animation-delay: 0.5s; opacity: 0; animation-fill-mode: forwards; }
+    .delay-6 { animation-delay: 0.6s; opacity: 0; animation-fill-mode: forwards; }
+    
+    /* 響應式設計 */
+    @media (max-width: 992px) {
+        .test-cards-row,
+        .test-cards-row-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .test-cards-row,
+        .test-cards-row-2 {
+            grid-template-columns: 1fr;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-icon fade-in delay-1">🧠</div>
+    <h1 class="hero-title fade-in delay-2">Personality Paradox</h1>
+    <p class="hero-subtitle fade-in delay-2">多面向人格測驗 ∞</p>
+    
+    <div class="hero-description-group fade-in delay-3">
+        <p class="hero-tagline">探索你的多面向人格特質 ✨</p>
+        <p class="hero-tagline">整合 MBTI、Big Five、星座分析</p>
+        <p class="hero-tagline">深入了解真實而完整的自己</p>
+    </div>
+</div>
+
+<!-- 測驗流程區域 -->
+<div class="journey-section">
+    <div class="journey-header fade-in delay-4">
+        <div class="journey-icon">🗺️</div>
+        <h2 class="journey-title">你的人格探索之旅</h2>
+        <p class="journey-subtitle">發現最真實的自己</p>
+    </div>
+
+    <!-- 第一排：3個測驗卡片 -->
+    <div class="test-cards-row">
+        <div class="test-card mbti fade-in delay-4">
+            <div class="test-card-icon">🎯</div>
+            <h3 class="test-card-title">MBTI 類型</h3>
+            <p class="test-card-description">輸入你的 MBTI<br>或前往測驗網站</p>
+        </div>
+
+        <div class="test-card bigfive fade-in delay-4">
+            <div class="test-card-icon">📊</div>
+            <h3 class="test-card-title">Big Five 測驗</h3>
+            <p class="test-card-description">15 個問題<br>快速了解真實的你！</p>
+        </div>
+
+        <div class="test-card zodiac fade-in delay-4">
+            <div class="test-card-icon">⭐</div>
+            <h3 class="test-card-title">星座選擇</h3>
+            <p class="test-card-description">你是哪個星座？<br>點一下就知道！</p>
+        </div>
+    </div>
+
+    <!-- 第二排：3個功能卡片 -->
+    <div class="test-cards-row">
+        <div class="test-card dark fade-in delay-5">
+            <div class="test-card-icon">🔍</div>
+            <h3 class="test-card-title">黑暗三角</h3>
+            <p class="test-card-description">19 題策略思維<br>與行為風格評估</p>
+        </div>
+
+        <div class="test-card analysis fade-in delay-5">
+            <div class="test-card-icon">📈</div>
+            <h3 class="test-card-title">結果分析</h3>
+            <p class="test-card-description">獲得完整的<br>人格分析報告</p>
+        </div>
+
+        <div class="test-card chatbot fade-in delay-5">
+            <div class="test-card-icon">💬</div>
+            <h3 class="test-card-title">對話助手 NEW!</h3>
+            <p class="test-card-description">AI 助手解答<br>人格相關問題</p>
+        </div>
+    </div>
+
+    <!-- 開始按鈕 -->
+    <div class="start-button-container fade-in delay-6">
+        <a href="{{ url_for('mbti_input') }}" class="start-button">
+            🚀 開始測驗
+        </a>
+        <div class="time-hint">
+            ✨ 15 分鐘，開啟自我探索之旅
+        </div>
+    </div>
+
+    <!-- 分隔線 -->
+    <div class="divider fade-in delay-7">
+        <span class="divider-text">已經測驗過了？</span>
+    </div>
+
+    <!-- 快速登入區域 -->
+    <div class="quick-login-section fade-in delay-8">
+        <div class="quick-login-title">👤 輸入您之前使用的名字</div>
+        <form class="quick-login-form" id="quickLoginForm">
+            <input 
+                type="text" 
+                class="quick-login-input" 
+                id="quickLoginName" 
+                placeholder="例如：soh"
+                required
+            />
+            <button type="submit" class="quick-login-button">快速登入</button>
+        </form>
+        <div class="quick-login-error" id="quickLoginError"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 頁面載入動畫
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+
+    // 快速登入處理
+    document.getElementById('quickLoginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const nameInput = document.getElementById('quickLoginName');
+        const errorDiv = document.getElementById('quickLoginError');
+        const submitButton = this.querySelector('button[type="submit"]');
+        
+        const name = nameInput.value.trim();
+        
+        if (!name) {
+            errorDiv.textContent = '請輸入名字';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        // 顯示載入狀態
+        submitButton.textContent = '檢查中...';
+        submitButton.disabled = true;
+        errorDiv.style.display = 'none';
+        
+        try {
+            const response = await fetch('/quick_login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: name })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // 成功：跳轉到 chatbot（強制重新載入，避免使用緩存）
+                window.location.href = data.redirect + '?t=' + new Date().getTime();
+            } else {
+                // 失敗：顯示錯誤訊息
+                errorDiv.textContent = data.message;
+                errorDiv.style.display = 'block';
+                submitButton.textContent = '快速登入';
+                submitButton.disabled = false;
+            }
+        } catch (error) {
+            errorDiv.textContent = '發生錯誤，請稍後再試';
+            errorDiv.style.display = 'block';
+            submitButton.textContent = '快速登入';
+            submitButton.disabled = false;
+        }
+    });
+</script>
+{% endblock %}
