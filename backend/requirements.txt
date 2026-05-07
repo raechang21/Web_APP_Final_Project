@@ -1,0 +1,15 @@
+fastapi>=0.118
+uvicorn[standard]>=0.32
+itsdangerous>=2.2
+pydantic>=2.13
+pydantic-settings>=2.6
+python-multipart>=0.0.12
+SQLAlchemy>=2.0.36
+
+ollama>=0.6
+plotly>=5.17
+pandas>=2.3
+reportlab>=4.4
+
+pytest>=8.3
+httpx>=0.28

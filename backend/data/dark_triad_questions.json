@@ -1,0 +1,131 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "text": "讓別人知道你的秘密是不明智的。",
+      "dimension": "machiavellianism",
+      "reverse": false
+    },
+    {
+      "id": 2,
+      "text": "無論如何，你必須讓重要人士站在你這邊。",
+      "dimension": "machiavellianism",
+      "reverse": false
+    },
+    {
+      "id": 3,
+      "text": "避免與他人直接衝突，因為他們可能在未來對你有幫助。",
+      "dimension": "machiavellianism",
+      "reverse": false
+    },
+    {
+      "id": 4,
+      "text": "如果想隨心所欲的話就得盡量保持低調。",
+      "dimension": "machiavellianism",
+      "reverse": false
+    },
+    {
+      "id": 5,
+      "text": "掌握情勢是需要事先計畫的。",
+      "dimension": "machiavellianism",
+      "reverse": false
+    },
+    {
+      "id": 6,
+      "text": "奉承他人是個讓別人站在你這邊的好方法。",
+      "dimension": "machiavellianism",
+      "reverse": false
+    },
+    {
+      "id": 7,
+      "text": "當一項詭計成功時我會很開心。",
+      "dimension": "machiavellianism",
+      "reverse": false
+    },
+    {
+      "id": 8,
+      "text": "人們視我為天生的領導者。",
+      "dimension": "narcissism",
+      "reverse": false
+    },
+    {
+      "id": 9,
+      "text": "我具有說服他人的獨特天分。",
+      "dimension": "narcissism",
+      "reverse": false
+    },
+    {
+      "id": 10,
+      "text": "團體活動如果沒有我的話就會顯得無趣。",
+      "dimension": "narcissism",
+      "reverse": false
+    },
+    {
+      "id": 11,
+      "text": "我知道自己很特別，因為人們也是一直這樣告訴我的。",
+      "dimension": "narcissism",
+      "reverse": false
+    },
+    {
+      "id": 12,
+      "text": "我擁有一些出類拔萃的特質。",
+      "dimension": "narcissism",
+      "reverse": false
+    },
+    {
+      "id": 13,
+      "text": "我有可能是某個領域的明日之星。",
+      "dimension": "narcissism",
+      "reverse": false
+    },
+    {
+      "id": 14,
+      "text": "我喜歡時不時地炫耀。",
+      "dimension": "narcissism",
+      "reverse": false
+    },
+    {
+      "id": 15,
+      "text": "人們常說我不受控制。",
+      "dimension": "psychopathy",
+      "reverse": false
+    },
+    {
+      "id": 16,
+      "text": "我傾向與權威人士以及他們制定的規範抗爭。",
+      "dimension": "psychopathy",
+      "reverse": false
+    },
+    {
+      "id": 17,
+      "text": "和大多數與我同齡及同性別的人相比，我與他人有更多的紛爭。",
+      "dimension": "psychopathy",
+      "reverse": false
+    },
+    {
+      "id": 19,
+      "text": "我曾涉及與法律相關的麻煩事物。",
+      "dimension": "psychopathy",
+      "reverse": false
+    },
+    {
+      "id": 20,
+      "text": "我有時會將自己置身於危險的情況之中。",
+      "dimension": "psychopathy",
+      "reverse": false
+    }
+  ],
+  "dimensions": {
+    "machiavellianism": "馬基維利主義",
+    "narcissism": "自戀",
+    "psychopathy": "精神病態"
+  },
+  "scale": {
+    "1": "非常不同意",
+    "2": "不同意",
+    "3": "有點不同意",
+    "4": "有點同意",
+    "5": "同意",
+    "6": "非常同意"
+  }
+}

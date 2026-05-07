@@ -1,0 +1,91 @@
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.orm import Session
+
+from ..db import get_db
+from ..schemas.tests import QuickLoginIn, SessionOut, StartSessionIn
+from ..services import chat_memory
+
+
+router = APIRouter(prefix="/api", tags=["session"])
+
+
+@router.get("/session", response_model=SessionOut)
+def get_session(request: Request) -> SessionOut:
+    s = request.session
+    has_results = bool(s.get("mbti") and s.get("bigfive_scores") and s.get("zodiac"))
+    has_analysis = bool(s.get("analysis", {}).get("comprehensive"))
+    return SessionOut(
+        user_name=s.get("user_name"),
+        mbti=s.get("mbti"),
+        bigfive_scores=s.get("bigfive_scores"),
+        zodiac=s.get("zodiac"),
+        dark_triad_scores=s.get("dark_triad_scores"),
+        has_results=has_results,
+        has_analysis=has_analysis,
+        is_quick_login=s.get("quick_login", False),
+        welcome_message=s.get("welcome_message"),
+    )
+
+
+@router.post("/session/start")
+def start_session(payload: StartSessionIn, request: Request) -> dict:
+    name = payload.name.strip()
+    if not name:
+        raise HTTPException(400, "請輸入名字")
+
+    s = request.session
+    s["user_name"] = name
+    s["chat_messages"] = []
+    s["quick_login"] = False
+    s["welcome_message"] = f"嗨，{name}，歡迎你來這裡。今天想聊什麼呢？"
+    return {"success": True, "user_name": name, "redirect": "/mbti"}
+
+
+@router.post("/quick-login")
+def quick_login(
+    payload: QuickLoginIn, request: Request, db: Session = Depends(get_db)
+) -> dict:
+    name = payload.name.strip()
+    memory = chat_memory.load_memory(db, name)
+    if not memory:
+        raise HTTPException(404, f"找不到「{name}」的測驗記錄，請先完成測驗")
+
+    if not memory.get("mbti") or not memory.get("bigfive_scores"):
+        raise HTTPException(400, f"「{name}」的測驗記錄不完整，請重新完成測驗")
+
+    s = request.session
+    s["user_name"] = name
+    s["mbti"] = memory.get("mbti")
+    s["bigfive_scores"] = memory.get("bigfive_scores")
+    s["zodiac"] = memory.get("zodiac")
+    s["dark_triad_scores"] = memory.get("dark_triad_scores")
+    s["chat_messages"] = []
+    s["quick_login"] = True
+
+    welcome = f"嗨，{name}，歡迎回來！很高興再次見到你。"
+    summaries = memory.get("conversation_summaries") or []
+    if summaries:
+        topics = summaries[-1].get("topics") or []
+        if topics:
+            preview = topics[0][:20] + ("..." if len(topics[0]) > 20 else "")
+            if "？" in topics[0] or "?" in topics[0]:
+                follow = "有試著做看看嗎？"
+            elif any(w in topics[0] for w in ["被罵", "難過", "生氣", "傷心", "困擾", "壓力", "焦慮", "煩惱", "挫折", "失望", "沮喪"]):
+                follow = "後來還好嗎？"
+            elif any(w in topics[0] for w in ["不好", "不開心", "不舒服", "痛苦", "難受"]):
+                follow = "現在好一點了嗎？"
+            else:
+                follow = "後來怎麼樣了？"
+            welcome += f" 我記得上次你提到『{preview}』，{follow}"
+    else:
+        welcome += " 今天想聊什麼呢？"
+
+    s["welcome_message"] = welcome
+
+    return {"success": True, "message": f"歡迎回來，{name}！", "redirect": "/chatbot"}
+
+
+@router.post("/restart")
+def restart(request: Request) -> dict:
+    request.session.clear()
+    return {"success": True}
