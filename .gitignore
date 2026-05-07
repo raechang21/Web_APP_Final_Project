@@ -1,0 +1,39 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Environment files
+.env
+.env.*
+!.env.example
+!*.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+.venv/
+venv/
+env/
+
+# Python app runtime data
+flask_session/
+*.sqlite3
+backend/personality_paradox.db
+
+# Node / frontend
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Existing generated frontend artifacts in this repo
+frontend/*.js
+frontend/*.d.ts

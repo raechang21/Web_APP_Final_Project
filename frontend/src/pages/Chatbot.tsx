@@ -1,0 +1,216 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Navigate } from "react-router-dom";
+
+import {
+  clearChatHistory,
+  fetchAllHistories,
+  fetchChatHistory,
+  saveChatHistory,
+  streamChat,
+} from "@/api/chatbot";
+import { MessageList } from "@/components/chatbot/MessageList";
+import { QuickQuestions } from "@/components/chatbot/QuickQuestions";
+import { SidebarSummary } from "@/components/chatbot/SidebarSummary";
+import { PageShell, SectionHero } from "@/components/layout/PageShell";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { CHATBOT_PROMPTS } from "@/lib/personality";
+import { formatDate } from "@/lib/utils";
+import { useSessionStore } from "@/store/session";
+import type { ChatMessage, ConversationSummary } from "@/types";
+
+export default function Chatbot() {
+  const session = useSessionStore((state) => state);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [histories, setHistories] = useState<ConversationSummary[]>([]);
+  const [input, setInput] = useState("");
+  const [streaming, setStreaming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([fetchChatHistory(), fetchAllHistories()])
+      .then(([historyResponse, allResponse]) => {
+        if (!active) {
+          return;
+        }
+        const seeded =
+          historyResponse.messages.length === 0 && session.welcome_message
+            ? [
+                {
+                  role: "assistant" as const,
+                  content: session.welcome_message,
+                },
+              ]
+            : historyResponse.messages;
+        setMessages(seeded);
+        setHistories(allResponse.histories);
+      })
+      .catch((err) => {
+        if (active) {
+          setError(err instanceof Error ? err.message : "聊天記錄載入失敗");
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [session.welcome_message]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const promptList = useMemo(() => CHATBOT_PROMPTS, []);
+
+  if (!session.has_results && !session.is_quick_login) {
+    return <Navigate to="/" replace />;
+  }
+
+  async function handleSend(prefilled?: string) {
+    const text = (prefilled ?? input).trim();
+    if (!text || streaming) {
+      return;
+    }
+
+    setError(null);
+    setStreaming(true);
+    setInput("");
+
+    const userMessage: ChatMessage = {
+      role: "user",
+      content: text,
+      timestamp: new Date().toISOString(),
+    };
+    const assistantMessage: ChatMessage = { role: "assistant", content: "" };
+
+    setMessages((current) => [...current, userMessage, assistantMessage]);
+
+    try {
+      await streamChat(text, (event) => {
+        if (event.error) {
+          setError(event.error);
+          setStreaming(false);
+          return;
+        }
+        if (event.chunk) {
+          setMessages((current) => {
+            const copy = [...current];
+            const last = copy[copy.length - 1];
+            if (last?.role === "assistant") {
+              copy[copy.length - 1] = {
+                ...last,
+                content: last.content + event.chunk,
+              };
+            }
+            return copy;
+          });
+        }
+        if (event.done) {
+          setStreaming(false);
+          fetchAllHistories().then((response) => setHistories(response.histories)).catch(() => null);
+        }
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "SSE 連線失敗");
+      setStreaming(false);
+    }
+  }
+
+  async function handleClear() {
+    await clearChatHistory();
+    setMessages([]);
+  }
+
+  async function handleSave() {
+    await saveChatHistory();
+    const response = await fetchAllHistories();
+    setHistories(response.histories);
+  }
+
+  return (
+    <PageShell className="space-y-8">
+      <SectionHero
+        eyebrow="AI Chatbot"
+        title="這頁保留三欄式結構，但把資料流改成 React state + fetch streaming。"
+        description="左邊是人格摘要，中間是真正的對話流，右邊則是 quick prompts 與對話歷史。這樣之後要換模型、加 account、或加入多輪工作流都比較容易。"
+      />
+
+      <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_280px]">
+        <SidebarSummary session={session} />
+
+        <Card className="min-h-[70vh]">
+          <CardContent className="flex h-full flex-col gap-4 p-0">
+            <div className="border-b border-stone-200 px-6 py-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm text-stone-500">Counseling Surface</p>
+                  <h2 className="font-display text-3xl text-ink">AI 諮商小助手</h2>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="secondary" onClick={handleSave}>
+                    保存對話
+                  </Button>
+                  <Button variant="ghost" onClick={handleClear}>
+                    清空
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+              {error ? <p className="text-sm text-red-500">{error}</p> : null}
+              <MessageList messages={messages} />
+              <div ref={bottomRef} />
+            </div>
+
+            <div className="border-t border-stone-200 px-6 py-5">
+              <div className="space-y-3">
+                <Textarea
+                  rows={4}
+                  value={input}
+                  onChange={(event) => setInput(event.target.value)}
+                  placeholder="直接問：我的性格在關係裡常怎麼反應？"
+                />
+                <div className="flex justify-end">
+                  <Button onClick={() => handleSend()} disabled={streaming || !input.trim()}>
+                    {streaming ? "串流中..." : "送出"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="space-y-4">
+              <h3 className="font-display text-2xl text-ink">Quick Questions</h3>
+              <QuickQuestions prompts={promptList} onSelect={(prompt) => handleSend(prompt)} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="space-y-4">
+              <h3 className="font-display text-2xl text-ink">Saved Histories</h3>
+              <div className="space-y-3">
+                {histories.length === 0 ? (
+                  <p className="text-sm text-stone-500">目前沒有保存過的對話。</p>
+                ) : (
+                  histories.map((history) => (
+                    <div key={history.id} className="rounded-2xl bg-stone-50 p-4">
+                      <p className="text-sm font-medium text-ink">{history.preview || "空白對話"}</p>
+                      <p className="mt-1 text-xs text-stone-500">
+                        {formatDate(history.timestamp)} · {history.message_count} 則訊息
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </PageShell>
+  );
+}

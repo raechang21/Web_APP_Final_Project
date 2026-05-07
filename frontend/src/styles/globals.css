@@ -1,0 +1,46 @@
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --paper: #fffdfa;
+    --oat: #f4efe5;
+    --mist: #ebe6db;
+    --ink: #37352f;
+    --accent: #2f80c7;
+    --coral: #d76953;
+    --sage: #5e9d84;
+    --amber: #d8a43f;
+    --lavender: #9d84d2;
+  }
+
+  * {
+    @apply box-border;
+  }
+
+  body {
+    @apply min-h-screen bg-[#f6f1e7] font-sans text-ink antialiased;
+    background-image:
+      radial-gradient(circle at top left, rgba(215, 105, 83, 0.14), transparent 25%),
+      radial-gradient(circle at 80% 10%, rgba(47, 128, 199, 0.12), transparent 28%),
+      linear-gradient(180deg, #fbf8f2 0%, #f5efe5 100%);
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+}
+
+@layer components {
+  .hero-panel {
+    @apply rounded-[34px] border border-stone-200/80 px-6 py-8 shadow-soft backdrop-blur sm:px-8 sm:py-10;
+    background-color: rgba(255, 253, 250, 0.85);
+  }
+
+  .hero-eyebrow {
+    @apply inline-flex rounded-full bg-stone-100 px-3 py-1 text-xs uppercase tracking-[0.26em] text-stone-500;
+  }
+}
