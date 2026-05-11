@@ -1,7 +1,7 @@
 # Web_APP_Final_Project
 
 This project uses a separate frontend/backend architecture:
-
+   
 - `frontend/`: React + Vite
 - `backend/`: FastAPI + SQLite
 - The chatbot feature also depends on a local `Ollama` service
