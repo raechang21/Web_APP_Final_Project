@@ -1,26 +1,26 @@
 # Web_APP_Final_Project
 
-這個專案是前後端分離架構：
+This project uses a separate frontend/backend architecture:
 
-- `frontend/`：React + Vite
-- `backend/`：FastAPI + SQLite
-- 聊天功能另外依賴本機 `Ollama`
+- `frontend/`: React + Vite
+- `backend/`: FastAPI + SQLite
+- The chatbot feature also depends on a local `Ollama` service
 
-## 啟動前準備
+## Prerequisites
 
-請先確認本機已安裝：
+Make sure the following are installed on your machine:
 
-- Node.js 18+ 與 `npm`
-- Python 3.10+ 與 `pip`
-- 如果要使用聊天功能：`Ollama`
+- Node.js 18+ and `npm`
+- Python 3.10+ and `pip`
+- `Ollama` if you want to use the chatbot feature
 
-## 專案啟動方式
+## How to Run the Project
 
-建議開兩個終端機，分別跑後端與前端。
+It is recommended to use two terminal windows: one for the backend and one for the frontend.
 
-### 1. 啟動後端
+### 1. Start the Backend
 
-先進入後端資料夾，建立虛擬環境、安裝套件，並建立 `.env`：
+Go into the backend directory, create a virtual environment, install dependencies, and create `.env`:
 
 ```bash
 cd backend
@@ -30,27 +30,27 @@ cp .env.example .env
 pip install -r requirements.txt
 ```
 
-啟動 FastAPI：
+Start FastAPI:
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-後端啟動後可用下面網址確認：
+After the backend starts, you can verify it here:
 
 ```text
 http://localhost:8000/api/health
 ```
 
-如果正常，會看到：
+If it is working correctly, you should see:
 
 ```json
 {"ok": true}
 ```
 
-### 2. 啟動前端
+### 2. Start the Frontend
 
-開另一個終端機：
+Open another terminal:
 
 ```bash
 cd frontend
@@ -58,35 +58,35 @@ npm install
 npm run dev
 ```
 
-前端預設網址：
+Default frontend URL:
 
 ```text
 http://localhost:5173
 ```
 
-## 聊天功能的額外設定
+## Extra Setup for the Chatbot
 
-聊天功能會呼叫本機的 Ollama，預設模型是 `gemma3:4b`。如果你要使用聊天頁面，請先執行：
+The chatbot feature uses a local Ollama service. The default model is `gemma3:4b`. If you want to use the chatbot page, first run:
 
 ```bash
 ollama serve
 ```
 
-再下載模型：
+Then download the model:
 
 ```bash
 ollama pull gemma3:4b
 ```
 
-確認 Ollama 是否可用：
+To verify that Ollama is available:
 
 ```text
 http://localhost:8000/api/test-ollama
 ```
 
-## 環境變數
+## Environment Variables
 
-後端 `.env` 可參考 `backend/.env.example`：
+The backend `.env` can be based on `backend/.env.example`:
 
 ```env
 SECRET_KEY=change-me-to-a-long-random-string
@@ -97,37 +97,37 @@ OLLAMA_MODEL=gemma3:4b
 SESSION_MAX_AGE=7200
 ```
 
-一般本機開發直接使用這份預設值即可。
+For normal local development, these default values are usually enough.
 
-## 開發時的埠號對應
+## Default Ports
 
-- 前端：`5173`
-- 後端：`8000`
-- Ollama：`11434`
+- Frontend: `5173`
+- Backend: `8000`
+- Ollama: `11434`
 
-前端 Vite 已經把 `/api` 代理到 `http://localhost:8000`，所以前後端一起啟動後即可正常連線。
+Vite is already configured to proxy `/api` requests to `http://localhost:8000`, so once both frontend and backend are running, they should connect correctly.
 
-## 常見問題
+## Common Issues
 
-### 1. 前端打得開，但 API 失敗
+### 1. The frontend opens, but API requests fail
 
-先確認後端是否有啟動：
+First, make sure the backend is running:
 
 ```text
 http://localhost:8000/api/health
 ```
 
-### 2. 聊天功能顯示無法連到 Ollama
+### 2. The chatbot says it cannot connect to Ollama
 
-請確認：
+Check the following:
 
-- 已安裝 Ollama
-- 已執行 `ollama serve`
-- 已下載 `gemma3:4b`
+- Ollama is installed
+- `ollama serve` is running
+- `gemma3:4b` has been downloaded
 
-### 3. 第一次啟動時找不到資料庫
+### 3. The database does not exist on first startup
 
-這是正常的，後端啟動時會自動建立 SQLite 資料庫檔案：
+This is normal. The backend will automatically create the SQLite database file on startup:
 
 ```text
 backend/personality_paradox.db
