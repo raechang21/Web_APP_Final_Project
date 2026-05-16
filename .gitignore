@@ -37,3 +37,6 @@ coverage/
 # Existing generated frontend artifacts in this repo
 frontend/*.js
 frontend/*.d.ts
+!frontend/postcss.config.js
+!frontend/postcss.config.mjs
+!frontend/postcss.config.cjs
