@@ -31,6 +31,7 @@ export default function DeepAnalysis() {
         }
         setStreaming(true);
         setLoading(false);
+        let receivedDone = false;
         await streamDeepAnalysis((event) => {
           if (!active) {
             return;
@@ -44,10 +45,15 @@ export default function DeepAnalysis() {
             setAnalysis((current) => current + event.chunk);
           }
           if (event.done) {
+            receivedDone = true;
             patchSession({ has_analysis: true });
             setStreaming(false);
           }
         });
+        if (active && !receivedDone) {
+          setError("AI 分析串流提前結束，請再試一次。");
+          setStreaming(false);
+        }
       })
       .catch((err) => {
         if (active) {

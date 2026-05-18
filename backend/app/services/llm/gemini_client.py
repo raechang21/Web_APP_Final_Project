@@ -72,13 +72,12 @@ class GeminiClient:
                     system_instruction=system_prompt,
                     temperature=0.7,
                     top_p=0.9,
-                    max_output_tokens=2048, # 允許輸出更長的文章
+                    max_output_tokens=4096, # 允許輸出更長的文章
                     safety_settings=unrestricted_safety # 加入安全設定
                 )
             )
             
             for chunk in response:
-                # 確保 chunk 有文字才處理，避免 safety block 時為空導致出錯
                 if chunk.text:
                     cleaned_text = self.clean_markdown(chunk.text)
                     yield cleaned_text

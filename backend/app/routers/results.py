@@ -236,9 +236,8 @@ def deep_analysis_stream(request: Request) -> StreamingResponse:
             s["analysis"] = analysis
             yield f"data: {json.dumps({'done': True})}\n\n"
         except Exception as e:
-            # 強制把錯誤訊息包裝成 chunk 顯示在畫面上，避免前端吞掉錯誤
-            error_msg = f"\n\n⚠️ [系統提示：生成中斷，原因 - {str(e)}]"
-            yield f"data: {json.dumps({'chunk': error_msg}, ensure_ascii=False)}\n\n"
+            error_msg = f"分析中斷：{str(e)}"
+            yield f"data: {json.dumps({'error': error_msg, 'done': True}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
         generate(),
