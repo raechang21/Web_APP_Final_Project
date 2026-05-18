@@ -2,7 +2,12 @@ import json
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
-import ollama
+
+# OLLAMA
+# import ollama
+
+# Gemini
+from ..services.llm.gemini_client import GeminiClient
 
 from ..config import settings
 from ..services.llm.prompt_templates import PromptTemplates
@@ -36,25 +41,23 @@ def _ensure_results(request: Request) -> tuple[str, dict, str, dict | None]:
 @router.get("/results")
 def get_results(request: Request) -> dict:
     mbti, bigfive, zodiac, dark_triad = _ensure_results(request)
-    s = request.session
-
-    if "analysis" not in s:
-        analysis = {
-            "mbti": PromptTemplates.get_mbti_template(mbti),
-            "bigfive": PromptTemplates.get_bigfive_template(bigfive),
-            "zodiac": PromptTemplates.get_zodiac_template(zodiac),
-            "dark_triad": (
-                PromptTemplates.get_dark_triad_template(dark_triad) if dark_triad else None
-            ),
-        }
-        s["analysis"] = analysis
+    
+    # 每次即時組合，不要存進 request.session 中！
+    analysis = {
+        "mbti": PromptTemplates.get_mbti_template(mbti),
+        "bigfive": PromptTemplates.get_bigfive_template(bigfive),
+        "zodiac": PromptTemplates.get_zodiac_template(zodiac),
+        "dark_triad": (
+            PromptTemplates.get_dark_triad_template(dark_triad) if dark_triad else None
+        ),
+    }
 
     return {
         "mbti": mbti,
         "bigfive_scores": bigfive,
         "zodiac": zodiac,
         "dark_triad_scores": dark_triad,
-        "analysis": s["analysis"],
+        "analysis": analysis, # 直接回傳
     }
 
 
@@ -155,13 +158,19 @@ def _build_comprehensive_prompt(
 
 【分析要求】
 1. **使用第二人稱「你」**
-2. **必須整合所有測驗結果**：MBTI 切入 → Big Five 驗證 → 星座呼應 → 黑暗三角（若有）
+2. **請嚴格依照以下順序，將分析分為獨立的段落（每個段落之間【必須使用一個空白行】隔開）：**
+   - 第一段：專注於 MBTI 類型的核心特質與行為模式分析。
+   - 第二段：專注於 Big Five 人格特質分析（嚴格依照判讀標準描述高低）。
+   - 第三段：專注於星座特質分析，並探討它與前面測驗的關聯或矛盾。
+   - 第四段（若有黑暗三角數據）：專注於黑暗三角特質分析。
 3. **嚴格依照「分數判讀標準」描述 Big Five 特質高低**
 4. **聚焦於不同測驗結果之間的「呼應」與「矛盾」**
 5. **不要在文中提及具體分數**
 6. **嚴格控制字數在 400-450 字以內**
 
 【禁止事項】
+✗ 絕對禁止任何開場白或自我介紹
+✗ 必須直接以第一段的 MBTI 分析作為文章的開頭
 ✗ 不要使用「這位客人」「該受測者」等第三人稱
 ✗ 不要在分析文中寫出具體分數
 ✗ 不要誤判分數高低
@@ -194,28 +203,42 @@ def deep_analysis_stream(request: Request) -> StreamingResponse:
     def generate():
         full = ""
         try:
-            response = ollama.generate(
-                model=settings.OLLAMA_MODEL,
-                prompt=prompt,
-                system=(
-                    "你是一位專業的心理學分析師。請使用繁體中文，提供完整且深入的分析。"
-                    "回應時請使用純文字，不要使用任何 Markdown 格式標記。"
-                ),
-                stream=True,
-                options={"temperature": 0.7, "top_p": 0.9, "num_predict": 2048},
-            )
-            for chunk in response:
-                if "response" in chunk:
-                    text = _clean_markdown(chunk["response"])
-                    full += text
-                    yield f"data: {json.dumps({'chunk': text}, ensure_ascii=False)}\n\n"
+            # OLLAMA
+            # response = ollama.generate(
+            #     model=settings.OLLAMA_MODEL,
+            #     prompt=prompt,
+            #     system=(
+            #         "你是一位專業的心理學分析師。請使用繁體中文，提供完整且深入的分析。"
+            #         "回應時請使用純文字，不要使用任何 Markdown 格式標記。"
+            #     ),
+            #     stream=True,
+            #     options={"temperature": 0.7, "top_p": 0.9, "num_predict": 2048},
+            # )
+            # for chunk in response:
+            #     if "response" in chunk:
+            #         text = _clean_markdown(chunk["response"])
+            #         full += text
+            #         yield f"data: {json.dumps({'chunk': text}, ensure_ascii=False)}\n\n"
 
+            # Gemini
+            llm_client = GeminiClient()
+            system_msg = (
+                "你是一位專業的心理學分析師。請使用繁體中文，提供完整且深入的分析。"
+                "回應時請使用純文字，不要使用任何 Markdown 格式標記。"
+            )
+            for text_chunk in llm_client.generate_stream(prompt, system_msg):
+                if text_chunk:
+                    full += text_chunk
+                    yield f"data: {json.dumps({'chunk': text_chunk}, ensure_ascii=False)}\n\n"
+                    
             analysis = s.get("analysis", {})
             analysis["comprehensive"] = full
             s["analysis"] = analysis
             yield f"data: {json.dumps({'done': True})}\n\n"
         except Exception as e:
-            yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+            # 強制把錯誤訊息包裝成 chunk 顯示在畫面上，避免前端吞掉錯誤
+            error_msg = f"\n\n⚠️ [系統提示：生成中斷，原因 - {str(e)}]"
+            yield f"data: {json.dumps({'chunk': error_msg}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
         generate(),

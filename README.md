@@ -29,6 +29,7 @@ source .venv/bin/activate
 cp .env.example .env
 pip install -r requirements.txt
 ```
+Copy you own Google AI key to GEMINI_API_KEY in backend/.env
 
 Start FastAPI:
 

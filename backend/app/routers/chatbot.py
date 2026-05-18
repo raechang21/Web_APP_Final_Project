@@ -10,7 +10,13 @@ from ..db import get_db
 from ..schemas.tests import ChatMessageIn
 from ..services import chat_memory
 from ..services.llm.chatbot_prompts import ChatBotPrompts
-from ..services.llm.ollama_client import OllamaClient
+
+# OLLAMA
+# from ..services.llm.ollama_client import OllamaClient
+
+# GEMINI
+from ..services.llm.gemini_client import GeminiClient
+
 from ..services.models.dark_triad_result import DarkTriadResult
 from ..services.models.test_result import (
     BigFiveResult,
@@ -21,7 +27,11 @@ from ..services.models.test_result import (
 
 router = APIRouter(prefix="/api/chatbot", tags=["chatbot"])
 
-ollama_client = OllamaClient()
+# ORIGINAL
+# ollama_client = OllamaClient()
+
+# GEMINI
+llm_client = GeminiClient()
 
 TRAIT_MAP = {
     "開放性": ("openness", "開放性"),
@@ -203,7 +213,11 @@ def chatbot_stream(
     def gen_llm():
         full = ""
         try:
-            for chunk in ollama_client.generate_stream(formatted, system_prompt):
+            # OLLAMA
+            # for chunk in ollama_client.generate_stream(formatted, system_prompt):
+            
+            # Gemini
+            for chunk in llm_client.generate_stream(formatted, system_prompt):
                 if chunk:
                     full += chunk
                     yield _sse({"chunk": chunk})

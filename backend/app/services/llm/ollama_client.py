@@ -5,8 +5,10 @@ Ollama 客戶端
 import ollama
 from ...config import settings
 
-OLLAMA_MODEL = settings.OLLAMA_MODEL
-OLLAMA_TIMEOUT = settings.OLLAMA_TIMEOUT
+# OLLAMA_MODEL = settings.OLLAMA_MODEL
+# OLLAMA_TIMEOUT = settings.OLLAMA_TIMEOUT
+OLLAMA_MODEL = getattr(settings, "OLLAMA_MODEL", "gemma3:4b")
+OLLAMA_TIMEOUT = getattr(settings, "OLLAMA_TIMEOUT", 60)
 
 
 class OllamaClient:

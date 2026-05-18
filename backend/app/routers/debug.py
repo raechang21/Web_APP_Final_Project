@@ -1,26 +1,54 @@
-import ollama
 from fastapi import APIRouter, Request
-
 from ..config import settings
 
+# OLLAMA
+# import ollama
+
+# Gemini
+from ..services.llm.gemini_client import GeminiClient
 
 router = APIRouter(prefix="/api", tags=["debug"])
 
 
-@router.get("/test-ollama")
-def test_ollama() -> dict:
+# OLLAMA
+# @router.get("/test-ollama")
+# def test_ollama() -> dict:
+#     try:
+#         models = ollama.list()
+#         response = ollama.generate(
+#             model=settings.OLLAMA_MODEL,
+#             prompt="請用繁體中文簡短回答：你好嗎？",
+#             options={"num_predict": 20},
+#         )
+#         return {
+#             "status": "success",
+#             "models_count": len(models.models),
+#             "response": response["response"],
+#         }
+#     except Exception as e:
+#         return {"status": "error", "error": str(e)}
+
+# Gemini
+@router.get("/test-gemini")
+def test_gemini() -> dict:
     try:
-        models = ollama.list()
-        response = ollama.generate(
-            model=settings.OLLAMA_MODEL,
-            prompt="請用繁體中文簡短回答：你好嗎？",
-            options={"num_predict": 20},
-        )
-        return {
-            "status": "success",
-            "models_count": len(models.models),
-            "response": response["response"],
-        }
+        llm_client = GeminiClient()
+        
+        # 呼叫我們在前一個步驟加入到 GeminiClient 的 test_connection 函式
+        is_connected = llm_client.test_connection()
+        
+        if is_connected:
+            return {
+                "status": "success",
+                "service": "Gemini API",
+                "message": "連線成功！Gemini API 運作正常。"
+            }
+        else:
+            return {
+                "status": "error",
+                "service": "Gemini API",
+                "message": "連線失敗，請檢查 API Key 是否正確或網路狀態。"
+            }
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
