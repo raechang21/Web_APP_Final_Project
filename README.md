@@ -36,6 +36,11 @@ Start FastAPI:
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+You can test your api key if it is working: 
+
+```
+http://localhost:8000/api/test-gemini
+```
 
 After the backend starts, you can verify it here:
 
