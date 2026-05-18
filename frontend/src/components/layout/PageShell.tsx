@@ -2,11 +2,14 @@ import type { PropsWithChildren, ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
+import { useSessionStore } from "@/store/session";
 
 export function PageShell({
   children,
   className,
 }: PropsWithChildren<{ className?: string }>) {
+  const hasResults = useSessionStore((state) => state.has_results);
+
   return (
     <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -21,20 +24,50 @@ export function PageShell({
             </div>
           </Link>
           <nav className="flex items-center gap-2 text-sm text-stone-500">
-            <Link className="rounded-full px-3 py-2 hover:bg-white/70 hover:text-ink" to="/results">
+            <NavItem to="/results" locked={!hasResults}>
               Results
-            </Link>
-            <Link className="rounded-full px-3 py-2 hover:bg-white/70 hover:text-ink" to="/deep-analysis">
+            </NavItem>
+            <NavItem to="/deep-analysis" locked={!hasResults}>
               Deep Analysis
-            </Link>
-            <Link className="rounded-full px-3 py-2 hover:bg-white/70 hover:text-ink" to="/chatbot">
+            </NavItem>
+            <NavItem to="/chatbot" locked={!hasResults}>
               Chatbot
-            </Link>
+            </NavItem>
           </nav>
         </header>
         <main className={cn("space-y-6", className)}>{children}</main>
       </div>
     </div>
+  );
+}
+
+function NavItem({
+  to,
+  locked,
+  children,
+}: {
+  to: string;
+  locked: boolean;
+  children: ReactNode;
+}) {
+  const base = "rounded-full px-3 py-2 transition";
+
+  if (locked) {
+    return (
+      <span
+        aria-disabled="true"
+        title="完成測驗後解鎖"
+        className={cn(base, "cursor-not-allowed text-stone-300")}
+      >
+        {children}
+      </span>
+    );
+  }
+
+  return (
+    <Link to={to} className={cn(base, "hover:bg-white/70 hover:text-ink")}>
+      {children}
+    </Link>
   );
 }
 
@@ -56,7 +89,7 @@ export function SectionHero({
           <span className="hero-eyebrow">{eyebrow}</span>
           <div className="space-y-3">
             <h1 className="font-display text-4xl text-ink sm:text-5xl">{title}</h1>
-            <p className="max-w-3xl text-base leading-8 text-stone-600 sm:text-lg">
+            <p className="text-pretty text-base leading-8 text-stone-600 sm:text-lg">
               {description}
             </p>
           </div>

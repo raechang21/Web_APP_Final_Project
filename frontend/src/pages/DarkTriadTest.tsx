@@ -73,23 +73,6 @@ export default function DarkTriadTest() {
         description="每題都請以你真實的反應作答。這個區塊的分析價值，在於看你如何應對競爭、權威與自我展示。"
       />
 
-      <Card className="sticky top-4 z-10">
-        <CardContent className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-sm text-stone-500">作答進度</p>
-            <h2 className="font-display text-3xl text-ink">
-              {completed} / {questions.length}
-            </h2>
-          </div>
-          <Button
-            disabled={submitting || completed !== questions.length}
-            onClick={handleSubmit}
-          >
-            {submitting ? "送出中..." : "前往 Results"}
-          </Button>
-        </CardContent>
-      </Card>
-
       {loading ? <p className="text-stone-500">題目載入中...</p> : null}
       {error ? <p className="text-sm text-red-500">{error}</p> : null}
 
@@ -103,7 +86,6 @@ export default function DarkTriadTest() {
                 </div>
                 <div>
                   <p className="text-lg font-medium text-ink">{question.text}</p>
-                  <p className="mt-1 text-sm text-stone-500">{question.dimension}</p>
                 </div>
               </div>
               <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
@@ -135,6 +117,28 @@ export default function DarkTriadTest() {
             </CardContent>
           </Card>
         ))}
+      </div>
+      <div className="h-20 sm:h-24" aria-hidden />
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="pointer-events-auto grid grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-[28px] border border-stone-200/80 bg-[rgba(255,253,250,0.92)] px-6 py-4 shadow-[0_18px_60px_rgba(54,47,31,0.12)] backdrop-blur">
+            <div aria-hidden />
+            <div className="text-center">
+              <p className="text-xs uppercase tracking-[0.24em] text-stone-400">作答進度</p>
+              <p className="font-display text-2xl text-ink">
+                {completed} / {questions.length}
+              </p>
+            </div>
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSubmit}
+                disabled={submitting || completed !== questions.length}
+              >
+                {submitting ? "送出中..." : "前往 Results"}
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </PageShell>
   );
