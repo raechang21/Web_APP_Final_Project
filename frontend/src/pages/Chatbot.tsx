@@ -3,6 +3,8 @@ import { Navigate } from "react-router-dom";
 
 import {
   clearChatHistory,
+  deleteAllHistories,
+  deleteHistory,
   fetchAllHistories,
   fetchChatHistory,
   saveChatHistory,
@@ -129,6 +131,27 @@ export default function Chatbot() {
     setHistories(response.histories);
   }
 
+  async function handleDeleteHistory(id: number) {
+    if (!confirm("確定刪除這筆對話記錄嗎？")) return;
+    try {
+      await deleteHistory(id);
+      setHistories((current) => current.filter((h) => h.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "刪除失敗");
+    }
+  }
+  
+  async function handleClearAllHistories() {
+    if (!confirm(`確定要清除全部 ${histories.length} 筆對話記錄嗎？\n此動作無法復原。`)) return;
+    try {
+      await deleteAllHistories();
+      setHistories([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "清除失敗");
+    }
+  }
+
+
   return (
     <PageShell className="space-y-8">
       <SectionHero
@@ -147,14 +170,6 @@ export default function Chatbot() {
                 <div>
                   <p className="text-sm text-stone-500">Counseling Surface</p>
                   <h2 className="font-display text-3xl text-ink">AI 諮商小助手</h2>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="secondary" onClick={handleSave}>
-                    保存對話
-                  </Button>
-                  <Button variant="ghost" onClick={handleClear}>
-                    清空
-                  </Button>
                 </div>
               </div>
             </div>
@@ -192,17 +207,40 @@ export default function Chatbot() {
           </Card>
           <Card>
             <CardContent className="space-y-4">
-              <h3 className="font-display text-2xl text-ink">Saved Histories</h3>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-display text-2xl text-ink">Saved Histories</h3>
+                {histories.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={handleClearAllHistories}
+                    className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs text-stone-500 transition hover:bg-red-50 hover:text-red-600"
+                    aria-label="清除全部記錄"
+                  >
+                    <span>🗑️</span>
+                    <span>全部清除</span>
+                  </button>
+                ) : null}
+              </div>
               <div className="space-y-3">
                 {histories.length === 0 ? (
                   <p className="text-sm text-stone-500">目前沒有保存過的對話。</p>
                 ) : (
                   histories.map((history) => (
-                    <div key={history.id} className="rounded-2xl bg-stone-50 p-4">
-                      <p className="text-sm font-medium text-ink">{history.preview || "空白對話"}</p>
-                      <p className="mt-1 text-xs text-stone-500">
-                        {formatDate(history.timestamp)} · {history.message_count} 則訊息
-                      </p>
+                    <div key={history.id} className="group relative">
+                      <div className="rounded-2xl bg-stone-50 p-4 transition-all duration-300 group-hover:bg-stone-100 group-hover:pr-14">
+                        <p className="text-sm font-medium text-ink">{history.preview || "空白對話"}</p>
+                        <p className="mt-1 text-xs text-stone-500">
+                          {formatDate(history.timestamp)} · {history.message_count} 則訊息
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteHistory(history.id)}
+                        className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 scale-75 items-center justify-center rounded-full text-stone-400 opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500"
+                        aria-label="刪除這筆對話"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   ))
                 )}

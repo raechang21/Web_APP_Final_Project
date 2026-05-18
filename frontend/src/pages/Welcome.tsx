@@ -122,54 +122,55 @@ export default function Welcome() {
           ))}
         </div>
       ) : (
-        <Card className="relative">
-          <CardContent className="space-y-8 p-8 sm:p-10">
-            <button
-              onClick={() => setExpanded(null)}
-              className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition hover:bg-stone-200 hover:text-ink"
-              aria-label="收合"
-            >
-              ✕
-            </button>
+        <div className="space-y-4">
+          <Card key={expanded} className="relative animate-expand-in">
+            <CardContent className="space-y-6 p-8 sm:p-10">
+              <button
+                onClick={() => setExpanded(null)}
+                className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition hover:bg-stone-200 hover:text-ink"
+                aria-label="收合"
+              >
+                ✕
+              </button>
 
-            <div className="flex items-center gap-5">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-100 text-4xl">
-                {cards[expanded].icon}
+              <div className="flex items-center gap-5">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-100 text-4xl">
+                  {cards[expanded].icon}
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.24em] text-stone-400">Detail</p>
+                  <h3 className="mt-1 font-display text-3xl text-ink sm:text-4xl">
+                    {cards[expanded].title}
+                  </h3>
+                </div>
               </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.24em] text-stone-400">Detail</p>
-                <h3 className="mt-1 font-display text-3xl text-ink sm:text-4xl">
-                  {cards[expanded].title}
-                </h3>
-              </div>
-            </div>
 
-            <p className="max-w-3xl text-base leading-8 text-stone-700 sm:text-lg sm:leading-9">
-              {cards[expanded].detail}
-            </p>
+              <p className="max-w-3xl text-base leading-8 text-stone-700 sm:text-lg sm:leading-9">
+                {cards[expanded].detail}
+              </p>
+            </CardContent>
+          </Card>
 
-            <div className="space-y-3 border-t border-stone-200 pt-6">
-              <p className="text-xs uppercase tracking-[0.24em] text-stone-400">切換到</p>
-              <div className="flex flex-wrap gap-2">
-                {cards.map((card, i) => (
-                  <button
-                    key={card.title}
-                    onClick={() => setExpanded(i === expanded ? null : i)}
-                    className={cn(
-                      "flex items-center gap-2 rounded-full px-4 py-2 text-sm transition",
-                      i === expanded
-                        ? "bg-ink text-paper"
-                        : "bg-stone-100 text-stone-600 hover:bg-stone-200 hover:text-ink",
-                    )}
-                  >
-                    <span className="text-base">{card.icon}</span>
-                    <span>{card.title}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {cards.map((card, i) => {
+              if (i === expanded) return null;
+              return (
+                <Card
+                  key={card.title}
+                  onClick={() => setExpanded(i)}
+                  className="group cursor-pointer transition-all duration-300 ease-out hover:-translate-y-1 hover:border-stone-300/80 hover:shadow-[0_18px_50px_rgba(54,47,31,0.1)]"
+                >
+                  <CardContent className="p-4 text-center">
+                    <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-stone-100 text-xl transition-transform duration-300 ease-out group-hover:scale-110 group-hover:rotate-3">
+                      {card.icon}
+                    </div>
+                    <p className="mt-2 text-sm font-medium text-ink">{card.title}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
       )}
 
         <Card className="self-start">

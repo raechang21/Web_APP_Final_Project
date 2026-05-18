@@ -33,3 +33,17 @@ export function saveChatHistory() {
     method: "POST",
   });
 }
+
+
+export function deleteHistory(id: number) {
+  return apiRequest<{ success: boolean }>(`/api/chatbot/history/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export function deleteAllHistories() {
+  return apiRequest<{ success: boolean; deleted: number }>(
+    "/api/chatbot/history/all",
+    { method: "DELETE" },
+  );
+}

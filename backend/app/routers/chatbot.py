@@ -253,3 +253,31 @@ def chatbot_history_all(request: Request, db: Session = Depends(get_db)) -> dict
         "user_name": user_name,
         "histories": chat_memory.list_conversations(db, user_name),
     }
+
+
+@router.delete("/history/all")
+def chatbot_delete_all_histories(
+    request: Request, db: Session = Depends(get_db)
+) -> dict:
+    user_name = request.session.get("user_name")
+    if not user_name:
+        raise HTTPException(400, "尚未取得使用者名稱")
+    count = chat_memory.delete_all_conversations(db, user_name=user_name)
+    return {"success": True, "deleted": count}
+
+
+@router.delete("/history/{conversation_id}")
+def chatbot_delete_history(
+    conversation_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> dict:
+    user_name = request.session.get("user_name")
+    if not user_name:
+        raise HTTPException(400, "尚未取得使用者名稱")
+    success = chat_memory.delete_conversation(
+        db, user_name=user_name, conversation_id=conversation_id
+    )
+    if not success:
+        raise HTTPException(404, "找不到該對話")
+    return {"success": True}

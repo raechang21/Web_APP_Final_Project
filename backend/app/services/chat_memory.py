@@ -138,3 +138,29 @@ def list_conversations(db: Session, user_name: str) -> list[dict]:
             }
         )
     return out
+
+
+def delete_conversation(
+    db: Session, *, user_name: str, conversation_id: int
+) -> bool:
+    """刪除使用者的某筆對話。回傳是否成功刪除。"""
+    conv = (
+        db.query(Conversation)
+        .filter_by(id=conversation_id, user_name=user_name)
+        .first()
+    )
+    if not conv:
+        return False
+    db.delete(conv)  # messages 會自動 cascade 刪掉
+    db.commit()
+    return True
+
+
+def delete_all_conversations(db: Session, *, user_name: str) -> int:
+    """刪除使用者的全部對話。回傳刪除筆數。"""
+    convs = db.query(Conversation).filter_by(user_name=user_name).all()
+    count = len(convs)
+    for c in convs:
+        db.delete(c)
+    db.commit()
+    return count
