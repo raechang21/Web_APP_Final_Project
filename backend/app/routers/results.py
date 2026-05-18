@@ -73,8 +73,9 @@ def bigfive_chart(request: Request) -> dict:
                     bigfive["extraversion"],
                     bigfive["agreeableness"],
                     bigfive["neuroticism"],
+                    bigfive["openness"],
                 ],
-                "theta": ["開放性", "盡責性", "外向性", "友善性", "神經質"],
+                "theta": ["開放性", "盡責性", "外向性", "友善性", "神經質", "開放性"],
                 "fill": "toself",
                 "name": "Big Five",
             }

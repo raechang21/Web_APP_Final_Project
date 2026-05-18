@@ -106,7 +106,6 @@ export default function BigFiveTest() {
                 </div>
                 <div>
                   <p className="text-lg font-medium text-ink">{question.text}</p>
-                  <p className="mt-1 text-sm text-stone-500">{question.dimension}</p>
                 </div>
               </div>
               <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">

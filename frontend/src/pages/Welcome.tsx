@@ -73,7 +73,7 @@ export default function Welcome() {
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {cards.map(([icon, title, text]) => (
-            <Card key={title} className="overflow-hidden">
+            <Card key={title} className="group cursor-default overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 hover:border-stone-300/80 hover:shadow-[0_24px_70px_rgba(54,47,31,0.14)]">
               <CardContent className="space-y-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-100 text-2xl">
                   {icon}

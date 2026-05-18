@@ -13,52 +13,54 @@ export const FLOW_STEPS = [
   { label: "Results", path: "/results" },
 ];
 
+
 export const MBTI_GROUPS: Array<{
   title: string;
   tone: string;
-  types: Array<{ type: MbtiType; label: string; icon: string }>;
+  types: Array<{ type: MbtiType; label: string; image: string }>;
 }> = [
   {
-    title: "Analysts",
+    title: "分析家",
     tone: "border-[rgba(215,105,83,0.6)] bg-[rgba(215,105,83,0.10)]",
     types: [
-      { type: "INTJ", label: "建築師", icon: "♟️" },
-      { type: "INTP", label: "邏輯學家", icon: "🧪" },
-      { type: "ENTJ", label: "指揮官", icon: "🗺️" },
-      { type: "ENTP", label: "辯論家", icon: "⚡" },
+      { type: "INTJ", label: "建築師", image: "/mbti/INTJ.png" },
+      { type: "INTP", label: "邏輯學家", image: "/mbti/INTP.png" },
+      { type: "ENTJ", label: "指揮官", image: "/mbti/ENTJ.png" },
+      { type: "ENTP", label: "辯論家", image: "/mbti/ENTP.png" },
     ],
   },
   {
-    title: "Diplomats",
+    title: "外交官",
     tone: "border-[rgba(94,157,132,0.6)] bg-[rgba(94,157,132,0.10)]",
     types: [
-      { type: "INFJ", label: "提倡者", icon: "🔭" },
-      { type: "INFP", label: "調停者", icon: "🌿" },
-      { type: "ENFJ", label: "主人公", icon: "🫶" },
-      { type: "ENFP", label: "競選者", icon: "🎈" },
+      { type: "INFJ", label: "提倡者", image: "/mbti/INFJ.png" },
+      { type: "INFP", label: "調停者", image: "/mbti/INFP.png"},
+      { type: "ENFJ", label: "主人公", image: "/mbti/ENFJ.png" },
+      { type: "ENFP", label: "競選者", image: "/mbti/ENFP.png" },
     ],
   },
   {
-    title: "Sentinels",
+    title: "守衛者",
     tone: "border-[rgba(47,128,199,0.6)] bg-[rgba(47,128,199,0.10)]",
     types: [
-      { type: "ISTJ", label: "物流師", icon: "🧱" },
-      { type: "ISFJ", label: "守衛者", icon: "🪺" },
-      { type: "ESTJ", label: "總經理", icon: "📐" },
-      { type: "ESFJ", label: "執政官", icon: "🤝" },
+      { type: "ISTJ", label: "物流師", image: "/mbti/ISTJ.png" },
+      { type: "ISFJ", label: "守衛者", image: "/mbti/ISFJ.png" },
+      { type: "ESTJ", label: "總經理", image: "/mbti/ESTJ.png" },
+      { type: "ESFJ", label: "執政官", image: "/mbti/ESFJ.png" },
     ],
   },
   {
-    title: "Explorers",
+    title: "探索者",
     tone: "border-[rgba(216,164,63,0.7)] bg-[rgba(216,164,63,0.15)]",
     types: [
-      { type: "ISTP", label: "鑑賞家", icon: "🛠️" },
-      { type: "ISFP", label: "探險家", icon: "🎨" },
-      { type: "ESTP", label: "企業家", icon: "🏁" },
-      { type: "ESFP", label: "表演者", icon: "🎭" },
+      { type: "ISTP", label: "鑑賞家", image: "/mbti/ISTP.png" },
+      { type: "ISFP", label: "探險家", image: "/mbti/ISFP.png" },
+      { type: "ESTP", label: "企業家", image: "/mbti/ESTP.png" },
+      { type: "ESFP", label: "表演者", image: "/mbti/ESFP.png" },
     ],
   },
 ];
+
 
 export const BIG_FIVE_META: Array<{
   key: keyof BigFiveScores;

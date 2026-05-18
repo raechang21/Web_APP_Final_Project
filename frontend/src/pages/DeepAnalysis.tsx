@@ -71,7 +71,6 @@ export default function DeepAnalysis() {
         eyebrow="Deep Analysis"
         title="這裡才是 LLM 真正介入的地方。"
         description="這個頁面直接對接後端 SSE，逐段接收模型生成內容。若 session 已經快取過綜合分析，則直接回填，不再重跑一次。"
-        actions={<Button onClick={() => navigate("/chatbot")}>帶著分析去聊天</Button>}
       />
 
       <Card className="overflow-hidden">

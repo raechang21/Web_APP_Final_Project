@@ -76,16 +76,6 @@ export default function Results() {
         eyebrow="Results"
         title="這一頁先把資料整合成可讀的總覽，而不是急著堆更多動畫。"
         description="MBTI、Big Five、Zodiac 與可選的 Dark Triad 現在都能透過 FastAPI JSON 直接餵進 React，這是整個前後端分離重構的關鍵交界。"
-        actions={
-          <>
-            <Button variant="secondary" onClick={() => navigate("/deep-analysis")}>
-              查看綜合分析
-            </Button>
-            <Button variant="accent" onClick={() => navigate("/chatbot")}>
-              打開 Chatbot
-            </Button>
-          </>
-        }
       />
 
       {error ? <p className="text-sm text-red-500">{error}</p> : null}
@@ -118,23 +108,29 @@ export default function Results() {
             </Card>
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[1fr_0.95fr]">
-            <Card>
-              <CardContent className="space-y-6">
-                <h2 className="font-display text-3xl text-ink">Big Five Radar</h2>
-                {chart ? <BigFiveRadar figure={chart} /> : null}
-                <div className="space-y-4">
-                  {BIG_FIVE_META.map(({ key, label, color }) => (
-                    <ScoreBar
-                      key={key}
-                      label={label}
-                      score={data.bigfive_scores[key]}
-                      indicatorClassName={color}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid gap-6 lg:grid-cols-[1fr_0.95fr]">
+          <Card>
+            <CardContent className="space-y-6">
+              <h2 className="font-display text-3xl text-ink">Big Five 人格特質</h2>
+              {chart ? <BigFiveRadar figure={chart} /> : null}
+              <div className="space-y-4">
+                {BIG_FIVE_META.map(({ key, label, color }) => (
+                  <ScoreBar
+                    key={key}
+                    label={label}
+                    score={data.bigfive_scores[key]}
+                    indicatorClassName={color}
+                  />
+                ))}
+              </div>
+              <div className="space-y-3 border-t border-stone-200 pt-6">
+                <h3 className="font-display text-2xl text-ink">解讀</h3>
+                <p className="whitespace-pre-wrap text-sm leading-8 text-stone-600">
+                  {data.analysis.bigfive ?? "尚未取得 Big Five 靜態模板"}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
             <div className="space-y-6">
               <Card>
@@ -150,15 +146,6 @@ export default function Results() {
                       ))}
                     </ul>
                   ) : null}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="space-y-4">
-                  <h2 className="font-display text-3xl text-ink">Big Five 解讀</h2>
-                  <p className="whitespace-pre-wrap text-sm leading-8 text-stone-600">
-                    {data.analysis.bigfive ?? "尚未取得 Big Five 靜態模板"}
-                  </p>
                 </CardContent>
               </Card>
 
@@ -200,6 +187,9 @@ export default function Results() {
             </Button>
             <Button variant="accent" onClick={() => navigate("/deep-analysis")}>
               進入 Deep Analysis
+            </Button>
+            <Button variant="accent" onClick={() => navigate("/chatbot")}>
+              打開 Chatbot
             </Button>
           </div>
         </div>
