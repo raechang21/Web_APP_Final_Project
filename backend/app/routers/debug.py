@@ -1,26 +1,21 @@
-import ollama
 from fastapi import APIRouter, Request
-
+from ..services.llm.gemini_client import GeminiClient
 from ..config import settings
 
 
 router = APIRouter(prefix="/api", tags=["debug"])
 
 
-@router.get("/test-ollama")
-def test_ollama() -> dict:
+@router.get("/test-gemini")
+def test_gemini() -> dict:
     try:
-        models = ollama.list()
-        response = ollama.generate(
-            model=settings.OLLAMA_MODEL,
-            prompt="請用繁體中文簡短回答：你好嗎？",
-            options={"num_predict": 20},
+        client = GeminiClient()
+        response = client.generate(
+           "請用繁體中文簡短回答：你好嗎？",
+            num_predict = 20,
         )
-        return {
-            "status": "success",
-            "models_count": len(models.models),
-            "response": response["response"],
-        }
+        return {"status": "success", "response": response}
+    
     except Exception as e:
         return {"status": "error", "error": str(e)}
 

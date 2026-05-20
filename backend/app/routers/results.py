@@ -2,8 +2,8 @@ import json
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
-import ollama
 
+from ..services.llm.gemini_client import GeminiClient
 from ..config import settings
 from ..services.llm.prompt_templates import PromptTemplates
 
@@ -73,9 +73,8 @@ def bigfive_chart(request: Request) -> dict:
                     bigfive["extraversion"],
                     bigfive["agreeableness"],
                     bigfive["neuroticism"],
-                    bigfive["openness"],
                 ],
-                "theta": ["開放性", "盡責性", "外向性", "友善性", "神經質", "開放性"],
+                "theta": ["開放性", "盡責性", "外向性", "友善性", "神經質"],
                 "fill": "toself",
                 "name": "Big Five",
             }
@@ -156,13 +155,19 @@ def _build_comprehensive_prompt(
 
 【分析要求】
 1. **使用第二人稱「你」**
-2. **必須整合所有測驗結果**：MBTI 切入 → Big Five 驗證 → 星座呼應 → 黑暗三角（若有）
+2. **請嚴格依照以下順序，將分析分為獨立的段落（每個段落之間【必須使用一個空白行】隔開）：**
+   - 第一段：專注於 MBTI 類型的核心特質與行為模式分析。
+   - 第二段：專注於 Big Five 人格特質分析（嚴格依照判讀標準描述高低）。
+   - 第三段：專注於星座特質分析，並探討它與前面測驗的關聯或矛盾。
+   - 第四段（若有黑暗三角數據）：專注於黑暗三角特質分析。
 3. **嚴格依照「分數判讀標準」描述 Big Five 特質高低**
 4. **聚焦於不同測驗結果之間的「呼應」與「矛盾」**
 5. **不要在文中提及具體分數**
 6. **嚴格控制字數在 400-450 字以內**
 
 【禁止事項】
+✗ 絕對禁止任何開場白或自我介紹
+✗ 必須直接以第一段的 MBTI 分析作為文章的開頭
 ✗ 不要使用「這位客人」「該受測者」等第三人稱
 ✗ 不要在分析文中寫出具體分數
 ✗ 不要誤判分數高低
@@ -195,22 +200,16 @@ def deep_analysis_stream(request: Request) -> StreamingResponse:
     def generate():
         full = ""
         try:
-            response = ollama.generate(
-                model=settings.OLLAMA_MODEL,
-                prompt=prompt,
-                system=(
-                    "你是一位專業的心理學分析師。請使用繁體中文，提供完整且深入的分析。"
-                    "回應時請使用純文字，不要使用任何 Markdown 格式標記。"
-                ),
-                stream=True,
-                options={"temperature": 0.7, "top_p": 0.9, "num_predict": 2048},
+            gemini_client = GeminiClient()
+            system_prompt = (
+                "你是一位專業的心理學分析師。請使用繁體中文，提供完整且深入的分析。"
+                "回應時請使用純文字，不要使用任何 Markdown 格式標記。"
             )
-            for chunk in response:
-                if "response" in chunk:
-                    text = _clean_markdown(chunk["response"])
+            for text in gemini_client.generate_stream(prompt, system_prompt):
+                if text:
                     full += text
                     yield f"data: {json.dumps({'chunk': text}, ensure_ascii=False)}\n\n"
-
+            
             analysis = s.get("analysis", {})
             analysis["comprehensive"] = full
             s["analysis"] = analysis
