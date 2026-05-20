@@ -12,7 +12,7 @@ export function fetchResults() {
 }
 
 export function fetchBigFiveChart() {
-  return apiRequest<PlotlyFigure>("/api/bigfive-chart");
+  return apiRequest<PlotlyFigure>("/api/big-five-chart");
 }
 
 export function fetchDeepAnalysis() {

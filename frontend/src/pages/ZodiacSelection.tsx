@@ -13,7 +13,7 @@ import { useSessionStore } from "@/store/session";
 export default function ZodiacSelection() {
   const navigate = useNavigate();
   const patchSession = useSessionStore((state) => state.patchSession);
-  const bigfive = useSessionStore((state) => state.bigfive_scores);
+  const big_five = useSessionStore((state) => state.big_five_scores);
   const [items, setItems] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(useSessionStore.getState().zodiac);
   const [error, setError] = useState<string | null>(null);
@@ -43,8 +43,8 @@ export default function ZodiacSelection() {
     };
   }, []);
 
-  if (!bigfive) {
-    return <Navigate to="/bigfive" replace />;
+  if (!big_five) {
+    return <Navigate to="/big-five" replace />;
   }
 
   async function handleSubmit() {

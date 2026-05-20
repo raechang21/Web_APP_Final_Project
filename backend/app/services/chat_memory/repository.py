@@ -10,6 +10,13 @@ from ...models.user import User
 from .summaries import build_memory_data
 
 
+def _normalize_memory(memory: dict) -> dict:
+    if "big_five_scores" not in memory and "bigfive_scores" in memory:
+        memory = dict(memory)
+        memory["big_five_scores"] = memory["bigfive_scores"]
+    return memory
+
+
 def upsert_user(db: Session, *, user_name: str, **fields: Any) -> User:
     user = db.get(User, user_name)
     if user is None:
@@ -25,7 +32,7 @@ def upsert_user(db: Session, *, user_name: str, **fields: Any) -> User:
 
 def load_memory(db: Session, user_name: str) -> dict | None:
     memory = db.get(UserMemory, user_name)
-    return memory.memory_json if memory else None
+    return _normalize_memory(memory.memory_json) if memory else None
 
 
 def save_chat_memory(
@@ -54,11 +61,11 @@ def save_chat_memory(
     existing = memory.memory_json if memory else {}
 
     memory_data = build_memory_data(
-        existing_memory=existing_memory,
+        existing_memory=existing,
         user_name=user_name,
         chat_messages=chat_messages,
         mbti=mbti,
-        bigfive_scores=bigfive_scores,
+        big_five_scores=big_five_scores,
         zodiac=zodiac,
         dark_triad_scores=dark_triad_scores,
     )

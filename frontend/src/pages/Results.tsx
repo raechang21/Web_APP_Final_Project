@@ -35,7 +35,7 @@ export default function Results() {
         setSession({
           user_name: useSessionStore.getState().user_name,
           mbti: results.mbti,
-          bigfive_scores: results.bigfive_scores,
+          big_five_scores: results.big_five_scores,
           zodiac: results.zodiac,
           dark_triad_scores: results.dark_triad_scores,
           has_results: true,
@@ -118,7 +118,7 @@ export default function Results() {
                   <ScoreBar
                     key={key}
                     label={label}
-                    score={data.bigfive_scores[key]}
+                    score={data.big_five_scores[key]}
                     indicatorClassName={color}
                   />
                 ))}
@@ -126,7 +126,7 @@ export default function Results() {
               <div className="space-y-3 border-t border-stone-200 pt-6">
                 <h3 className="font-display text-2xl text-ink">解讀</h3>
                 <p className="whitespace-pre-wrap text-sm leading-8 text-stone-600">
-                  {data.analysis.bigfive ?? "尚未取得 Big Five 靜態模板"}
+                  {data.analysis.big_five ?? "尚未取得 Big Five 靜態模板"}
                 </p>
               </div>
             </CardContent>

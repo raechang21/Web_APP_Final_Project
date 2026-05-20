@@ -49,7 +49,6 @@ class GeminiClient:
     def generate_stream(
         self, 
         prompt: str, 
-        num_predict: int,
         system_prompt: str | None = None,
     ):
         try:
@@ -62,7 +61,7 @@ class GeminiClient:
                     system_instruction = system_prompt,
                     temperature = 0.7, 
                     top_p = 0.9,
-                    max_output_tokens = num_predict,
+                    max_output_tokens = 4096,
                 ),
             )
             

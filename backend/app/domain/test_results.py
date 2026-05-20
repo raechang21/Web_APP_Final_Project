@@ -49,6 +49,20 @@ class BigFiveResult:
             if not SCALE_MIN <= score <= SCALE_MAX:
                 raise ValueError(f"{dimension} 分數 {score} 超出有效範圍 (1.0 - 6.0)，請檢查測驗結果")
     
+    @classmethod
+    def from_scores(cls, scores: dict | None) -> "BigFiveResult | None":
+        if not scores:
+            return None
+
+        try:
+            return cls(**scores)
+        except ValueError:
+            corrected = {
+                key: max(SCALE_MIN, min(SCALE_MAX, value))
+                for key, value in scores.items()
+            }
+            return cls(**corrected)
+    
     def to_dict(self) -> dict[str, float]:
         return {
             'openness': self.openness,

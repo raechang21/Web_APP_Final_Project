@@ -13,7 +13,7 @@ def _load_json(path: str) -> dict[str, Any]:
 
 
 @lru_cache(maxsize = 1)
-def load_bigfive_questions() -> tuple[list[dict], dict[str, str]]:
+def load_big_five_questions() -> tuple[list[dict], dict[str, str]]:
     data = _load_json(BIG_FIVE_QUESTIONS_FILE)
     return data["questions"], data["scale_labels"]
 

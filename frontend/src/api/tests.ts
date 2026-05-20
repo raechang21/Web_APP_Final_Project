@@ -17,12 +17,12 @@ export function submitMbti(mbti_type: MbtiType) {
 
 export function fetchBigFiveQuestions() {
   return apiRequest<{ questions: BigFiveQuestion[]; scale_labels: Record<string, string> }>(
-    "/api/big_five/questions",
+    "/api/big-five/questions",
   );
 }
 
 export function submitBigFive(answers: Record<number, number>) {
-  return apiRequest<{ big_five_scores: BigFiveScores }>("/api/big_five", {
+  return apiRequest<{ big_five_scores: BigFiveScores }>("/api/big-five", {
     method: "POST",
     body: { answers },
   });

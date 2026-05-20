@@ -1,6 +1,12 @@
 from ...config import BIG_FIVE_DIMENSIONS, DARK_TRIAD_DIMENSIONS
 
 
+DEEP_ANALYSIS_SYSTEM_PROMPT = (
+    "你是一位專業的心理學分析師。請使用繁體中文，提供完整且深入的分析。"
+    "回應時請使用純文字，不要使用任何 Markdown 格式標記。"
+)
+
+
 def interpret_score(score: float) -> str:
     if score <= 2.0:
         return "極低"

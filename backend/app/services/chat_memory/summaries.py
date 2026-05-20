@@ -67,3 +67,4 @@ def build_memory_data(
         ),
         "key_topics": key_topics[:MAX_KEY_TOPICS],
     }
+    

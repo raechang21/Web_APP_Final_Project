@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request
-from ..services.llm.gemini_client import GeminiClient
+
 from ..config import settings
+from ..services.llm.gemini_client import GeminiClient
 
 
 router = APIRouter(prefix="/api", tags=["debug"])
@@ -22,30 +23,30 @@ def test_gemini() -> dict:
 
 @router.get("/diagnostic")
 def diagnostic(request: Request) -> dict:
-    s = request.session
+    session = request.session
     return {
-        "user_name": s.get("user_name"),
-        "mbti": s.get("mbti"),
-        "bigfive_scores": s.get("bigfive_scores"),
-        "zodiac": s.get("zodiac"),
-        "dark_triad_scores": s.get("dark_triad_scores"),
-        "chat_messages_count": len(s.get("chat_messages", [])),
-        "has_analysis": "analysis" in s,
-        "has_comprehensive": "comprehensive" in s.get("analysis", {}),
+        "user_name": session.get("user_name"),
+        "mbti": session.get("mbti"),
+        "big_five_scores": s.get("big_five_scores"),
+        "zodiac": session.get("zodiac"),
+        "dark_triad_scores": session.get("dark_triad_scores"),
+        "chat_messages_count": len(session.get("chat_messages", [])),
+        "has_analysis": "analysis" in session,
+        "has_comprehensive": "comprehensive" in session.get("analysis", {}),
     }
 
 
 @router.post("/setup-test-data")
 def setup_test_data(request: Request) -> dict:
-    s = request.session
-    s["mbti"] = "INTJ"
-    s["bigfive_scores"] = {
+    session = request.session
+    session["mbti"] = "INTJ"
+    session["big_five_scores"] = {
         "openness": 5.5,
         "conscientiousness": 5.0,
         "extraversion": 2.5,
         "agreeableness": 4.0,
         "neuroticism": 3.5,
     }
-    s["zodiac"] = "天蠍座"
-    s["dark_triad_scores"] = None
-    return {"status": "ok", "mbti": s["mbti"]}
+    session["zodiac"] = "天蠍座"
+    session["dark_triad_scores"] = None
+    return {"status": "ok", "mbti": session["mbti"]}

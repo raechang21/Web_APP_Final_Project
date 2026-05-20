@@ -23,7 +23,7 @@ export function SidebarSummary({ session }: { session: SessionData }) {
         </CardContent>
       </Card>
 
-      {session.bigfive_scores ? (
+      {session.big_five_scores ? (
         <Card>
           <CardContent className="space-y-4">
             <h3 className="font-display text-2xl text-ink">Big Five</h3>
@@ -31,7 +31,7 @@ export function SidebarSummary({ session }: { session: SessionData }) {
               <div key={key} className="flex items-center justify-between text-sm">
                 <span className="text-stone-600">{label}</span>
                 <span className="font-medium text-ink">
-                  {session.bigfive_scores?.[key].toFixed(1)}
+                  {session.big_five_scores?.[key].toFixed(1)}
                 </span>
               </div>
             ))}

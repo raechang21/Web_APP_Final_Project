@@ -17,12 +17,12 @@ def _calculate_dimension_scores(
     questions: list[dict], 
     dimensions: tuple[str, ...],
 ) -> dict[str, float]:
-    dimensions_scores: dict[str, list[int]] = {dimensions: [] for dimension in dimensions}
+    dimensions_scores: dict[str, list[int]] = {dimension: [] for dimension in dimensions}
     
     for question in questions: 
         question_id = question["id"]
         dimension = question["dimension"]
-        is_reversed = question.get("reversed", False)
+        is_reversed = question.get("reverse", question.get("reversed", False))
         
         if question_id not in answers:
             continue
@@ -40,6 +40,8 @@ def _calculate_dimension_scores(
             final_scores[dimension] = round(sum(scores) / len(scores), 1)
         else:
             final_scores[dimension] = float(SCALE_MIN)
+    
+    return final_scores
 
 
 def calculate_big_five_scores(
@@ -49,7 +51,7 @@ def calculate_big_five_scores(
     return _calculate_dimension_scores(
         answers = answers, 
         questions = questions, 
-        dimensionts = BIG_FIVE_DIMENSION_KEYS, 
+        dimensions = BIG_FIVE_DIMENSION_KEYS, 
     )
     
 
