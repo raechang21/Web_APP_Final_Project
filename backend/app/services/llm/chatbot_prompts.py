@@ -174,21 +174,10 @@ class ChatBotPrompts:
     
     
     @staticmethod
-    def format_user_message(message: str, chat_history: List[Dict[str, str]]) -> str:
-        """
-        格式化用戶訊息（包含對話歷史）
-        
-        Args:
-            message: 用戶當前訊息
-            chat_history: 對話歷史 [{"role": "user/assistant", "content": "..."}]
-            
-        Returns:
-            格式化後的提示詞
-        """
+    def format_user_message(message: str, chat_history: list[dict[str, str]]) -> str:
         if not chat_history:
             return message
         
-        # 構建對話上下文（最近 5 輪對話）
         recent_history = chat_history[-10:] if len(chat_history) > 10 else chat_history
         
         context = "對話歷史：\n"
