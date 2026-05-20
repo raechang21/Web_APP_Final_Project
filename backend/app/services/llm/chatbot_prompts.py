@@ -1,17 +1,10 @@
-"""
-ChatBot 專用提示詞模板
-"""
-
-from ..models.test_result import MBTIResult, BigFiveResult, ZodiacResult
-from ..models.dark_triad_result import DarkTriadResult
-from typing import Optional, List, Dict
+from ...domain.dark_triad_result import DarkTriadResult
+from ...domain.test_results import MBTIResult, BigFiveResult, ZodiacResult
 
 
 class ChatBotPrompts:
-    """ChatBot 提示詞類別"""
-    
     @staticmethod
-    def first_reply_after_name() -> str:
+    def first_reply_after_name_prompt() -> str:
         """用戶回答名字後的第一次回覆專用 prompt"""
         return """你是一位專業的心理諮商師。
 
@@ -39,25 +32,14 @@ class ChatBotPrompts:
 
 保持簡短(50字以內)、溫暖、不做任何假設。"""
     
+    
     @staticmethod
     def system_prompt_with_results(
-        mbti: Optional[MBTIResult] = None,
-        bigfive: Optional[BigFiveResult] = None,
-        zodiac: Optional[ZodiacResult] = None,
-        dark_triad: Optional[DarkTriadResult] = None
+        mbti: MBTIResult | None = None,
+        big_five: BigFiveResult | None = None,
+        zodiac: ZodiacResult | None = None,
+        dark_triad: DarkTriadResult | None = None
     ) -> str:
-        """
-        生成包含用戶測驗結果的系統提示詞
-        
-        Args:
-            mbti: MBTI 結果
-            bigfive: Big Five 結果
-            zodiac: 星座結果
-            dark_triad: 黑暗三角結果
-            
-        Returns:
-            系統提示詞
-        """
         base_prompt = """你是一位溫暖、專業的心理諮商師，擅長傾聽並提供實用的建議。
 
 【諮商原則】
@@ -133,15 +115,13 @@ class ChatBotPrompts:
 ✗ 避免的回應：
 「被罵的感覺很難受吧？發生什麼事了？」"""
 
-        # 如果有測驗結果，加入個案資料
-        if mbti or bigfive or zodiac or dark_triad:
+        if mbti or big_five or zodiac or dark_triad:
             context = "\n\n【個案資料 - 內部參考】\n"
             
             if mbti:
                 context += f"MBTI: {mbti.type}\n"
             
-            if bigfive:
-                # 定義分數解讀函數
+            if big_five:
                 def interpret_score(score: float) -> str:
                     if score <= 2.0:
                         return "極低"
@@ -154,72 +134,44 @@ class ChatBotPrompts:
                     else:
                         return "高"
                 
-                bf_dict = bigfive.to_dict()
+                bf_dict = big_five.to_dict()
                 context += "Big Five 人格特質（0-6分制，數字越大該特質越明顯）：\n"
-                context += f"  - 開放性 {bf_dict['openness']:.1f}/6.0 ({interpret_score(bf_dict['openness'])})\n"
-                context += f"  - 盡責性 {bf_dict['conscientiousness']:.1f}/6.0 ({interpret_score(bf_dict['conscientiousness'])})\n"
-                context += f"  - 外向性 {bf_dict['extraversion']:.1f}/6.0 ({interpret_score(bf_dict['extraversion'])})\n"
-                context += f"  - 友善性 {bf_dict['agreeableness']:.1f}/6.0 ({interpret_score(bf_dict['agreeableness'])})\n"
-                context += f"  - 神經質 {bf_dict['neuroticism']:.1f}/6.0 ({interpret_score(bf_dict['neuroticism'])})\n"
+                context += f"  - 開放性 {bf_dict['openness']: .1f}/6.0 ({interpret_score(bf_dict['openness'])})\n"
+                context += f"  - 盡責性 {bf_dict['conscientiousness']: .1f}/6.0 ({interpret_score(bf_dict['conscientiousness'])})\n"
+                context += f"  - 外向性 {bf_dict['extraversion']: .1f}/6.0 ({interpret_score(bf_dict['extraversion'])})\n"
+                context += f"  - 友善性 {bf_dict['agreeableness']: .1f}/6.0 ({interpret_score(bf_dict['agreeableness'])})\n"
+                context += f"  - 神經質 {bf_dict['neuroticism']: .1f}/6.0 ({interpret_score(bf_dict['neuroticism'])})\n"
                 context += "  ⚠️ 重要：0-2.0=極低、2.1-3.0=偏低、3.1-4.0=中等、4.1-5.0=偏高、5.1-6.0=高\n"
             
             if zodiac:
                 context += f"星座: {zodiac.sign}\n"
             
             if dark_triad:
-                context += f"黑暗三角: 策略思維{dark_triad.machiavellianism:.1f} 自信{dark_triad.narcissism:.1f} 彈性{dark_triad.psychopathy:.1f}\n"
+                context += f"黑暗三角: 策略思維{dark_triad.machiavellianism: .1f} 自信{dark_triad.narcissism: .1f} 彈性{dark_triad.psychopathy: .1f}\n"
             
             base_prompt += context
             base_prompt += """
 【如何運用測驗資料 - 重要】
-1. **正確理解分數**：Big Five 是 0-6 分制，分數越高代表該特質越明顯。1.0 是極低分，6.0 是最高分
+1. **正確理解分數**：Big Five 是 1-6 分制，分數越高代表該特質越明顯。1.0 是最低分，6.0 是最高分
 2. **必須綜合所有特質進行分析**：同時考慮 MBTI、Big Five、星座、黑暗三角等所有已知資料
 3. **分析特質交互作用**：不同特質組合會產生不同影響，例如：
    - 高外向(4.1+)+高神經質(4.1+)：建議透過社交宣洩情緒，找朋友傾訴
-   - 低外向(0-3.0)+高神經質(4.1+)：建議獨處整理情緒，寫日記或散步
+   - 低外向(1.0-3.0)+高神經質(4.1+)：建議獨處整理情緒，寫日記或散步
    - ENTJ+高盡責性(4.1+)：提供結構化、有效率的解決方案
    - INFP+高開放性(4.1+)：鼓勵創意表達、探索內在感受
 4. **個性化建議範例**：
    - 外向性高(4.1+)→建議社交互動、團體討論來紓解壓力
-   - 外向性低(0-3.0)→建議獨處充電、深度思考的方式處理
+   - 外向性低(1.0-3.0)→建議獨處充電、深度思考的方式處理
    - 神經質高(4.1+)→給予情緒調節技巧、正念練習
-   - 盡責性低(0-3.0)→協助建立彈性計畫、小步驟執行
+   - 盡責性低(1.0-3.0)→協助建立彈性計畫、小步驟執行
    - 開放性高(4.1+)→鼓勵創意解決方案、多元視角
-   - 開放性低(0-3.0)→重視實際、結構化的方法，避免太抽象的建議
+   - 開放性低(1.0-3.0)→重視實際、結構化的方法，避免太抽象的建議
 5. **自然融入建議**：不要明說「因為你是XX類型」，而是直接給符合其特質的建議"""
         else:
             base_prompt += "\n\n注意：個案尚未完成測驗，提供一般性心理諮商即可。"
         
         return base_prompt
     
-    @staticmethod
-    def get_suggested_questions(has_results: bool) -> List[str]:
-        """
-        獲取建議問題列表
-        
-        Args:
-            has_results: 是否有測驗結果
-            
-        Returns:
-            建議問題列表
-        """
-        if has_results:
-            return [
-                "最近有什麼事情讓你感到困擾嗎？",
-                "你覺得自己在人際關係中是什麼樣的人？",
-                "有沒有想要改變或成長的地方？",
-                "你通常如何處理壓力或困難？",
-                "工作或學習上有遇到什麼挑戰嗎？",
-                "對於這次的測驗結果，你有什麼感受？"
-            ]
-        else:
-            return [
-                "你好，今天想聊些什麼呢？",
-                "最近過得怎麼樣？",
-                "有什麼想要聊的話題嗎？",
-                "心理測驗能幫助我們了解自己嗎？",
-                "我想更了解自己，可以從哪裡開始？"
-            ]
     
     @staticmethod
     def format_user_message(message: str, chat_history: List[Dict[str, str]]) -> str:

@@ -1,67 +1,37 @@
+import re
+
 from google import genai
 from google.genai import types
 
 from ...config import settings
 
-GEMINI_API_KEY = settings.GEMINI_API_KEY
-GEMINI_MODEL = settings.GEMINI_MODEL
 
 SYSTEM_PROMPT = "你是一位專業的心理學分析師。你必須只使用繁體中文回答，絕對不可以使用英文、簡體中文或其他語言。請提供專業、客觀、具啟發性的分析。"
 
+
 class GeminiClient:
-    """Gemini LLM 客戶端"""
-    
-    def __init__(self, model: str = GEMINI_MODEL):
-        """
-        初始化 Gemini 客戶端
-        
-        Args:
-            model: 模型名稱
-        """
-        if not GEMINI_API_KEY:
+    def __init__(self, model: str | None = None):
+        if not settings.GEMINI_API_KEY:
             raise ValueError("Gemini API Key 尚未設置")
-        self.model = model
-        self.client = genai.Client(api_key = GEMINI_API_KEY)    
+        self.model = model or settings.GEMINI_MODEL
+        self.client = genai.Client(api_key = settings.GEMINI_API_KEY)    
+    
     
     @staticmethod
     def clean_markdown(text: str) -> str:
-        """
-        移除 Markdown 格式標記
-        
-        Args:
-            text: 原始文字
-            
-        Returns:
-            清理後的純文字
-        """
-        import re
-        # 移除粗體標記 **text** 或 __text__
         text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
         text = re.sub(r'__(.+?)__', r'\1', text)
-        # 移除斜體標記 *text* 或 _text_
         text = re.sub(r'\*(.+?)\*', r'\1', text)
         text = re.sub(r'_(.+?)_', r'\1', text)
-        # 移除開頭的列表標記
-        text = re.sub(r'^\s*[\*\-\+]\s+', '', text, flags=re.MULTILINE)
-        # 移除標題標記
-        text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
-        # 移除行首的獨立星號或破折號
-        text = re.sub(r'^\s*[\*\-]\s*\*\*', '', text, flags=re.MULTILINE)
+        text = re.sub(r'^\s*[\*\-\+]\s+', '', text, flags = re.MULTILINE)
+        text = re.sub(r'^#{1,6}\s+', '', text, flags = re.MULTILINE)
+        text = re.sub(r'^\s*[\*\-]\s*\*\*', '', text, flags = re.MULTILINE)
         return text
     
+    
     def generate(self, prompt: str, num_predict: int = 512) -> str:
-        """
-        生成文字
-        
-        Args:
-            prompt: 提示詞
-            num_predict: 最大輸出 token 數
-            
-        Returns:
-            生成的文字
-        """
         try:
-            response = self.client.models.genrate_content(
+            response = self.client.models.generate_content(
                 model = self.model,
                 contents = prompt,
                 config = types.GenerateContentConfig(
@@ -75,17 +45,13 @@ class GeminiClient:
         except Exception as e:
             return f"生成失敗：{str(e)}"
     
-    def generate_stream(self, prompt: str, system_prompt: str = None):
-        """
-        串流生成文字 (逐字輸出)
-        
-        Args:
-            prompt: 提示詞
-            system_prompt: 系統提示詞（可選）
-            
-        Yields:
-            逐步生成的文字片段
-        """
+    
+    def generate_stream(
+        self, 
+        prompt: str, 
+        num_predict: int,
+        system_prompt: str | None = None,
+    ):
         try:
             if system_prompt is None:
                 system_prompt = SYSTEM_PROMPT
@@ -93,10 +59,10 @@ class GeminiClient:
                 model = self.model,
                 contents = prompt,
                 config = types.GenerateContentConfig(
-                    system_instruction = SYSTEM_PROMPT,
+                    system_instruction = system_prompt,
                     temperature = 0.7, 
                     top_p = 0.9,
-                    max_output_tokens = 4096,
+                    max_output_tokens = num_predict,
                 ),
             )
             
