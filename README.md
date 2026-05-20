@@ -80,7 +80,7 @@ The backend `.env` can be based on `backend/.env.example`:
 SECRET_KEY=change-me-to-a-long-random-string
 FRONTEND_ORIGIN=http://localhost:5173
 GEMINI_API_KEY=your-gemini-api-key-here
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.1-flash-lite
 SESSION_MAX_AGE=7200
 ```
 

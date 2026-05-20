@@ -13,7 +13,7 @@ def _ordered_scores(scores: dict[str, float], keys: tuple[str, ...]) -> list[flo
 
 def build_big_five_radar_chart(scores: dict[str, float]) -> dict:
     dimension_keys = tuple(BIG_FIVE_DIMENSIONS.keys())
-    
+        
     return {
         "data": [
             {
@@ -28,6 +28,7 @@ def build_big_five_radar_chart(scores: dict[str, float]) -> dict:
             }
         ], 
         "layout": {
+            "dragmode": False, 
             "polar": {
                 "radialaxis": {
                     "visible": True, 
@@ -41,7 +42,7 @@ def build_big_five_radar_chart(scores: dict[str, float]) -> dict:
             }, 
             "showlegend": False, 
             "height": 400, 
-            "margin": {"1": 80, "r": 80, "t": 40, "b": 40}, 
+            "margin": {"l": 80, "r": 80, "t": 40, "b": 40}, 
             "paper_bgcolor": "rgba(0,0,0,0)", 
             "plot_bgcolor": "rgba(0,0,0,0)", 
         }, 

@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = f"sqlite:///{BACKEND_ROOT / 'var' / 'personality_paradox.db'}"
     
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_MODEL: str = "gemini-3.1-flash-lite"
     
     SESSION_MAX_AGE: int = 60 * 60 * 2  # 2 hours
 
