@@ -28,6 +28,7 @@ python -m venv .venv
 source .venv/Scripts/activate
 cp .env.example .env
 pip install -r requirements.txt
+mkdir var
 ```
 
 Copy your API key to GEMINI_API_KEY in backend/.env
