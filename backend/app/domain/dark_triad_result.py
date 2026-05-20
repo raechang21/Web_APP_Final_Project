@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 
-from ..config import SCALE_MIN, SCALE_MAX, SCORE_LABELS, SCORE_LABELS_ZH
-
-
-DARK_TRIAD_DIMENSIONS = (
-    "machiavellianism",     # 馬基維利主義 
-    "narcissism",       # 自戀
-    "psychopathy",      # 精神病態
+from ..config import (
+    DARK_TRIAD_DIMENSION_KEYS,
+    SCALE_MIN, 
+    SCALE_MAX, 
+    SCORE_LABELS, 
+    SCORE_LABELS_ZH
 )
 
 
@@ -17,7 +16,7 @@ class DarkTriadResult:
     psychopathy: float
     
     def __post_init__(self) -> None:
-        for dimension in DARK_TRIAD_DIMENSIONS:
+        for dimension in DARK_TRIAD_DIMENSION_KEYS:
             score = getattr(self, dimension)
             if not SCALE_MIN <= score <= SCALE_MAX:
                 raise ValueError(f"{dimension} 分數 {score} 超出有效範圍 (1.0 - 6.0)，請檢查測驗結果")

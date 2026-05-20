@@ -1,6 +1,13 @@
 from dataclasses import dataclass
 
-from ..config import SCALE_MIN, SCALE_MAX, SCORE_LABELS_ZH, ZODIAC_SIGNS
+from ..config import (
+    BIG_FIVE_DIMENSION_KEYS, 
+    DARK_TRIAD_DIMENSION_KEYS, 
+    SCALE_MIN, 
+    SCALE_MAX, 
+    SCORE_LABELS_ZH, 
+    ZODIAC_SIGNS
+)
 
 
 VALID_MBTI_CHARS = {
@@ -9,14 +16,6 @@ VALID_MBTI_CHARS = {
     2: {"T", "F"},
     3: {"J", "P"},
 }
-
-BIG_FIVE_DIMENSIONS = (
-    "openness",
-    "conscientiousness",
-    "extraversion",
-    "agreeableness",
-    "neuroticism",
-)
 
 
 @dataclass
@@ -45,7 +44,7 @@ class BigFiveResult:
     neuroticism: float
     
     def __post_init__(self):
-        for dimension in BIG_FIVE_DIMENSIONS:
+        for dimension in BIG_FIVE_DIMENSION_KEYS:
             score = getattr(self, dimension)
             if not SCALE_MIN <= score <= SCALE_MAX:
                 raise ValueError(f"{dimension} 分數 {score} 超出有效範圍 (1.0 - 6.0)，請檢查測驗結果")

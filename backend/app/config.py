@@ -55,11 +55,21 @@ BIG_FIVE_DIMENSIONS = {
     "neuroticism": "神經質",
 }
 
+BIG_FIVE_DIMENSION_KEYS = tuple(BIG_FIVE_DIMENSIONS.keys())
+
 ZODIAC_SIGNS = [
     "牡羊座", "金牛座", "雙子座", "巨蟹座",
     "獅子座", "處女座", "天秤座", "天蠍座",
     "射手座", "摩羯座", "水瓶座", "雙魚座",
 ]
+
+DARK_TRIAD_DIMENSIONS = {
+    "machiavellianism": "馬基維利主義",
+    "narcissism": "自戀",
+    "psychopathy": "精神病態",
+}
+
+DARK_TRIAD_DIMENSION_KEYS = tuple(DARK_TRIAD_DIMENSIONS.keys())
 
 MBTI_TEST_URL = "https://www.16personalities.com/tw/%E6%80%A7%E6%A0%BC%E6%B8%AC%E8%A9%A6"
 
