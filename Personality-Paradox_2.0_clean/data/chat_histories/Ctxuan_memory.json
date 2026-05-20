@@ -1,0 +1,40 @@
+{
+  "user_name": "Ctxuan",
+  "mbti": "ENFJ",
+  "bigfive_scores": {
+    "openness": 4.3,
+    "conscientiousness": 5.3,
+    "extraversion": 5.0,
+    "agreeableness": 5.0,
+    "neuroticism": 4.0
+  },
+  "zodiac": "摩羯座",
+  "dark_triad_scores": {
+    "machiavellianism": 3.6,
+    "narcissism": 3.3,
+    "psychopathy": 1.0
+  },
+  "last_updated": "2025-12-14T10:46:12.400797",
+  "total_conversations": 7,
+  "conversation_summaries": [
+    {
+      "date": "2025-12-14T10:43:49.069551",
+      "topics": [
+        "怎麼管理我的情緒？"
+      ]
+    },
+    {
+      "date": "2025-12-14T10:44:55.414849",
+      "topics": [
+        "我今天心情不好"
+      ]
+    },
+    {
+      "date": "2025-12-14T10:46:12.381574",
+      "topics": [
+        "我跟好朋友吵架，所以不開心"
+      ]
+    }
+  ],
+  "key_topics": []
+}

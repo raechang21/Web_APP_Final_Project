@@ -7,7 +7,7 @@ import type {
 export const FLOW_STEPS = [
   { label: "Welcome", path: "/" },
   { label: "MBTI", path: "/mbti" },
-  { label: "Big Five", path: "/big-five" },
+  { label: "Big Five", path: "/bigfive" },
   { label: "Zodiac", path: "/zodiac" },
   { label: "Dark Triad", path: "/dark-triad-intro" },
   { label: "Results", path: "/results" },

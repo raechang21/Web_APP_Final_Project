@@ -8,7 +8,7 @@ type SessionStatus = "idle" | "loading" | "ready" | "error";
 const emptySession: SessionData = {
   user_name: null,
   mbti: null,
-  big_five_scores: null,
+  bigfive_scores: null,
   zodiac: null,
   dark_triad_scores: null,
   has_results: false,

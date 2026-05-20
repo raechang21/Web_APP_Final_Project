@@ -4,34 +4,34 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from .api import chatbot, debug, results, session as session_router, tests
 from .config import settings
 from .db import init_db
+from .routers import chatbot, debug, results, session as session_router, tests
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
     yield
-    
 
-app = FastAPI(title = "芙莉蓮諮商小助手", lifespan = lifespan)
+
+app = FastAPI(title="Personality Paradox API", lifespan=lifespan)
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key = settings.SECRET_KEY,
-    session_cookie = "pp_session",
-    max_age = settings.SESSION_MAX_AGE,
-    same_site = "lax",
-    https_only = False,
+    secret_key=settings.SECRET_KEY,
+    session_cookie="pp_session",
+    max_age=settings.SESSION_MAX_AGE,
+    same_site="lax",
+    https_only=False,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = [settings.FRONTEND_ORIGIN],
-    allow_credentials = True,
-    allow_methods = ["*"],
-    allow_headers = ["*"],
+    allow_origins=[settings.FRONTEND_ORIGIN],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

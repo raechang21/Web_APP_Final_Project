@@ -56,7 +56,7 @@ export default function BigFiveTest() {
     try {
       const response = await submitBigFive(answers);
       patchSession({
-        big_five_scores: response.big_five_scores,
+        bigfive_scores: response.bigfive_scores,
         has_results: false,
       });
       navigate("/zodiac");

@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+
+{% block title %}MBTI 輸入 - Personality Paradox{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 返回按鈕 */
+    .back-button {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: var(--notion-bg);
+        border: 1px solid var(--notion-border);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        color: var(--notion-text-secondary);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        z-index: 100;
+    }
+    
+    .back-button:hover {
+        background: var(--notion-bg-secondary);
+        color: var(--primary-color);
+    }
+    
+    /* 主標題區 */
+    .page-header {
+        text-align: center;
+        padding: 3rem 2rem 2rem 2rem;
+    }
+    
+    .page-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--notion-text);
+        margin-bottom: 1rem;
+    }
+    
+    .page-subtitle {
+        font-size: 1.1rem;
+        color: var(--notion-text-secondary);
+    }
+    
+    .page-subtitle .highlight {
+        color: var(--primary-color);
+        font-weight: 500;
+    }
+    
+    /* 選項卡片容器 */
+    .options-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+    
+    .option-cards {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .option-card {
+        background: var(--notion-bg);
+        border: 2px solid var(--notion-border);
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .option-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary-color);
+        box-shadow: rgba(74, 143, 231, 0.2) 0px 8px 24px;
+    }
+    
+    .option-card.selected {
+        border-color: var(--primary-color);
+        background: rgba(74, 143, 231, 0.05);
+    }
+    
+    .option-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .option-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--notion-text);
+        margin-bottom: 0.75rem;
+    }
+    
+    .option-description {
+        font-size: 1rem;
+        color: var(--notion-text-secondary);
+        margin-bottom: 0;
+    }
+    
+    /* MBTI 選擇區 */
+    .mbti-selection {
+        display: none;
+    }
+    
+    .mbti-selection.active {
+        display: block;
+    }
+    
+    .section-title {
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--notion-text);
+        margin-bottom: 2rem;
+    }
+    
+    /* MBTI 卡片網格 - 4x4 */
+    .mbti-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto 2rem auto;
+    }
+    
+    .mbti-card {
+        background: var(--notion-bg);
+        border: 2px solid var(--notion-border);
+        border-radius: 12px;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .mbti-card:hover {
+        transform: translateY(-3px);
+        box-shadow: rgba(15, 15, 15, 0.1) 0px 8px 20px;
+    }
+    
+    .mbti-card.selected {
+        border-color: var(--primary-color);
+        background: rgba(74, 143, 231, 0.1);
+    }
+    
+    /* 不同組別顏色 */
+    .mbti-card.analyst { border-color: #EB5757; }
+    .mbti-card.diplomat { border-color: #56C2B2; }
+    .mbti-card.sentinel { border-color: #4A8FE7; }
+    .mbti-card.explorer { border-color: #F2C94C; }
+    
+    .mbti-card.analyst.selected { background: rgba(235, 87, 87, 0.1); }
+    .mbti-card.diplomat.selected { background: rgba(86, 194, 178, 0.1); }
+    .mbti-card.sentinel.selected { background: rgba(74, 143, 231, 0.1); }
+    .mbti-card.explorer.selected { background: rgba(242, 201, 76, 0.1); }
+    
+    .mbti-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .mbti-type {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--notion-text);
+        margin-bottom: 0.5rem;
+    }
+    
+    .mbti-label {
+        font-size: 0.9rem;
+        color: var(--notion-text-secondary);
+    }
+    
+    /* 按鈕區 */
+    .button-container {
+        text-align: center;
+        margin-top: 3rem;
+    }
+    
+    .select-button {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 1rem 3rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .select-button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: rgba(74, 143, 231, 0.4) 0px 8px 24px;
+    }
+    
+    .select-button:disabled {
+        background: var(--notion-border);
+        cursor: not-allowed;
+    }
+    
+    /* 外部測驗連結 */
+    .external-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+        padding: 0.75rem 1.5rem;
+        background: var(--notion-bg-secondary);
+        border: 1px solid var(--notion-border);
+        border-radius: 8px;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .external-link:hover {
+        background: var(--primary-light);
+        border-color: var(--primary-color);
+        color: var(--primary-dark);
+    }
+    
+    /* 響應式設計 */
+    @media (max-width: 992px) {
+        .mbti-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .option-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .mbti-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 返回按鈕 -->
+<a href="{{ url_for('index') }}" class="back-button">
+    ← 返回
+</a>
+
+<!-- 頁面標題 -->
+<div class="page-header">
+    <div class="page-icon">🎯</div>
+    <h1 class="page-title">第一站：找到你的人格代號</h1>
+    <p class="page-subtitle">
+        MBTI 將人格分為 <span class="highlight">16 種類型</span>，每種都有獨特的特質
+    </p>
+</div>
+
+<!-- 選項卡片 -->
+<div class="options-container">
+    <div class="option-cards">
+        <!-- 選項1: 我知道我的類型 -->
+        <div class="option-card" id="option-know" onclick="selectOption('know')">
+            <div class="option-icon">✅</div>
+            <h2 class="option-title">我知道我的類型</h2>
+            <p class="option-description">已經測過了？直接選擇你的 MBTI 類型</p>
+        </div>
+        
+        <!-- 選項2: 還不知道？去測一測！ -->
+        <div class="option-card" id="option-test" onclick="selectOption('test')">
+            <div class="option-icon">❓</div>
+            <h2 class="option-title">還不知道？去測一測！</h2>
+            <p class="option-description">
+                ⏱️ 約 10-15 分鐘<br>
+                🌍 免費測驗<br>
+                ⭐ 最受歡迎的人格測驗
+            </p>
+        </div>
+    </div>
+    
+    <!-- MBTI 類型選擇區 -->
+    <div class="mbti-selection" id="mbti-selection">
+        <h2 class="section-title">選擇你的 MBTI 類型</h2>
+        
+        <form method="POST" action="{{ url_for('mbti_input') }}" id="mbti-form">
+            <input type="hidden" name="mbti_type" id="mbti_type" value="">
+            
+            <div class="mbti-grid">
+                <!-- 分析家 (紫色) -->
+                <div class="mbti-card analyst" onclick="selectMBTI('INTJ')">
+                    <div class="mbti-icon">🏰</div>
+                    <div class="mbti-type">INTJ</div>
+                    <div class="mbti-label">建築師</div>
+                </div>
+                <div class="mbti-card analyst" onclick="selectMBTI('INTP')">
+                    <div class="mbti-icon">🔬</div>
+                    <div class="mbti-type">INTP</div>
+                    <div class="mbti-label">邏輯學家</div>
+                </div>
+                <div class="mbti-card analyst" onclick="selectMBTI('ENTJ')">
+                    <div class="mbti-icon">👑</div>
+                    <div class="mbti-type">ENTJ</div>
+                    <div class="mbti-label">指揮官</div>
+                </div>
+                <div class="mbti-card analyst" onclick="selectMBTI('ENTP')">
+                    <div class="mbti-icon">💡</div>
+                    <div class="mbti-type">ENTP</div>
+                    <div class="mbti-label">辯論家</div>
+                </div>
+                
+                <!-- 外交家 (綠色) -->
+                <div class="mbti-card diplomat" onclick="selectMBTI('INFJ')">
+                    <div class="mbti-icon">☀️</div>
+                    <div class="mbti-type">INFJ</div>
+                    <div class="mbti-label">提倡者</div>
+                </div>
+                <div class="mbti-card diplomat" onclick="selectMBTI('INFP')">
+                    <div class="mbti-icon">🎨</div>
+                    <div class="mbti-type">INFP</div>
+                    <div class="mbti-label">調停者</div>
+                </div>
+                <div class="mbti-card diplomat" onclick="selectMBTI('ENFJ')">
+                    <div class="mbti-icon">🤝</div>
+                    <div class="mbti-type">ENFJ</div>
+                    <div class="mbti-label">主人公</div>
+                </div>
+                <div class="mbti-card diplomat" onclick="selectMBTI('ENFP')">
+                    <div class="mbti-icon">🎭</div>
+                    <div class="mbti-type">ENFP</div>
+                    <div class="mbti-label">競選者</div>
+                </div>
+                
+                <!-- 守護者 (藍色) -->
+                <div class="mbti-card sentinel" onclick="selectMBTI('ISTJ')">
+                    <div class="mbti-icon">📋</div>
+                    <div class="mbti-type">ISTJ</div>
+                    <div class="mbti-label">物流師</div>
+                </div>
+                <div class="mbti-card sentinel" onclick="selectMBTI('ISFJ')">
+                    <div class="mbti-icon">🛡️</div>
+                    <div class="mbti-type">ISFJ</div>
+                    <div class="mbti-label">守衛者</div>
+                </div>
+                <div class="mbti-card sentinel" onclick="selectMBTI('ESTJ')">
+                    <div class="mbti-icon">⚖️</div>
+                    <div class="mbti-type">ESTJ</div>
+                    <div class="mbti-label">總經理</div>
+                </div>
+                <div class="mbti-card sentinel" onclick="selectMBTI('ESFJ')">
+                    <div class="mbti-icon">❤️</div>
+                    <div class="mbti-type">ESFJ</div>
+                    <div class="mbti-label">執政官</div>
+                </div>
+                
+                <!-- 探險家 (黃色) -->
+                <div class="mbti-card explorer" onclick="selectMBTI('ISTP')">
+                    <div class="mbti-icon">🔧</div>
+                    <div class="mbti-type">ISTP</div>
+                    <div class="mbti-label">鑑賞家</div>
+                </div>
+                <div class="mbti-card explorer" onclick="selectMBTI('ISFP')">
+                    <div class="mbti-icon">🌸</div>
+                    <div class="mbti-type">ISFP</div>
+                    <div class="mbti-label">探險家</div>
+                </div>
+                <div class="mbti-card explorer" onclick="selectMBTI('ESTP')">
+                    <div class="mbti-icon">⚡</div>
+                    <div class="mbti-type">ESTP</div>
+                    <div class="mbti-label">企業家</div>
+                </div>
+                <div class="mbti-card explorer" onclick="selectMBTI('ESFP')">
+                    <div class="mbti-icon">🎉</div>
+                    <div class="mbti-type">ESFP</div>
+                    <div class="mbti-label">表演者</div>
+                </div>
+            </div>
+            
+            <div class="button-container">
+                <button type="submit" class="select-button" id="submit-btn" disabled>
+                    選擇
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- 外部測驗區 -->
+    <div class="mbti-selection" id="test-selection">
+        <div style="text-align: center;">
+            <h2 class="section-title">前往 16Personalities 測驗</h2>
+            <a href="https://www.16personalities.com/ch" target="_blank" class="external-link">
+                🚀 前往 16Personalities 測驗
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger" role="alert" style="max-width: 600px; margin: 2rem auto;">
+    {{ error }}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let selectedOption = null;
+    let selectedMBTI = null;
+    
+    // 選擇選項 (知道類型 vs 去測驗)
+    function selectOption(option) {
+        selectedOption = option;
+        
+        // 更新卡片樣式
+        document.querySelectorAll('.option-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        document.getElementById('option-' + option).classList.add('selected');
+        
+        // 顯示對應區域
+        if (option === 'know') {
+            document.getElementById('mbti-selection').classList.add('active');
+            document.getElementById('test-selection').classList.remove('active');
+        } else {
+            document.getElementById('test-selection').classList.add('active');
+            document.getElementById('mbti-selection').classList.remove('active');
+        }
+    }
+    
+    // 選擇 MBTI 類型
+    function selectMBTI(type) {
+        selectedMBTI = type;
+        
+        // 更新卡片樣式
+        document.querySelectorAll('.mbti-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        event.currentTarget.classList.add('selected');
+        
+        // 更新隱藏欄位
+        document.getElementById('mbti_type').value = type;
+        
+        // 啟用提交按鈕
+        document.getElementById('submit-btn').disabled = false;
+    }
+</script>
+{% endblock %}

@@ -26,7 +26,7 @@ env/
 # Python app runtime data
 flask_session/
 *.sqlite3
-backend/var/personality_paradox.db
+backend/personality_paradox.db
 
 # Node / frontend
 node_modules/

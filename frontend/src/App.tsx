@@ -35,7 +35,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Welcome />} />
       <Route path="/mbti" element={<MbtiInput />} />
-      <Route path="/big-five" element={<BigFiveTest />} />
+      <Route path="/bigfive" element={<BigFiveTest />} />
       <Route path="/zodiac" element={<ZodiacSelection />} />
       <Route path="/dark-triad-intro" element={<DarkTriadIntro />} />
       <Route path="/dark-triad" element={<DarkTriadTest />} />

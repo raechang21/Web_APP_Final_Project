@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}星座選擇 - Personality Paradox{% endblock %}
+
+{% block content %}
+<!-- 進度指示器 -->
+<div class="step-indicator mb-4">
+    <div class="step completed">1. MBTI</div>
+    <div class="step completed">2. Big Five</div>
+    <div class="step active">3. 星座</div>
+    <div class="step">4. 黑暗三角</div>
+    <div class="step">5. 結果</div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        ⭐ 星座選擇
+    </div>
+    <div class="card-body p-4">
+        <div class="mb-4">
+            <h5>請選擇你的星座</h5>
+            <p class="text-muted">
+                根據你的出生日期選擇對應的星座。星座分析將與你的 MBTI 和 Big Five 結果整合，提供更全面的人格洞察。
+            </p>
+        </div>
+
+        <form method="POST" action="{{ url_for('zodiac_selection') }}">
+            <div class="row g-3 mb-4">
+                {% for zodiac in zodiacs %}
+                <div class="col-6 col-md-4 col-lg-3">
+                    <input 
+                        type="radio" 
+                        class="btn-check" 
+                        name="zodiac" 
+                        id="zodiac_{{ loop.index }}" 
+                        value="{{ zodiac }}"
+                        required
+                    >
+                    <label class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 zodiac-card" for="zodiac_{{ loop.index }}">
+                        <span class="zodiac-icon mb-2" style="font-size: 2rem;">
+                            {% if zodiac == '牡羊座' %}♈
+                            {% elif zodiac == '金牛座' %}♉
+                            {% elif zodiac == '雙子座' %}♊
+                            {% elif zodiac == '巨蟹座' %}♋
+                            {% elif zodiac == '獅子座' %}♌
+                            {% elif zodiac == '處女座' %}♍
+                            {% elif zodiac == '天秤座' %}♎
+                            {% elif zodiac == '天蠍座' %}♏
+                            {% elif zodiac == '射手座' %}♐
+                            {% elif zodiac == '摩羯座' %}♑
+                            {% elif zodiac == '水瓶座' %}♒
+                            {% elif zodiac == '雙魚座' %}♓
+                            {% endif %}
+                        </span>
+                        <strong>{{ zodiac }}</strong>
+                        <small class="text-muted mt-1">
+                            {% if zodiac == '牡羊座' %}3/21-4/19
+                            {% elif zodiac == '金牛座' %}4/20-5/20
+                            {% elif zodiac == '雙子座' %}5/21-6/21
+                            {% elif zodiac == '巨蟹座' %}6/22-7/22
+                            {% elif zodiac == '獅子座' %}7/23-8/22
+                            {% elif zodiac == '處女座' %}8/23-9/22
+                            {% elif zodiac == '天秤座' %}9/23-10/23
+                            {% elif zodiac == '天蠍座' %}10/24-11/22
+                            {% elif zodiac == '射手座' %}11/23-12/21
+                            {% elif zodiac == '摩羯座' %}12/22-1/19
+                            {% elif zodiac == '水瓶座' %}1/20-2/18
+                            {% elif zodiac == '雙魚座' %}2/19-3/20
+                            {% endif %}
+                        </small>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 星座資訊卡 -->
+            <div class="card mb-4" style="background-color: var(--secondary-color); display: none;" id="zodiacInfo">
+                <div class="card-body">
+                    <h6 class="card-title" id="zodiacName"></h6>
+                    <p class="mb-0 small" id="zodiacDesc"></p>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('bigfive_test') }}" class="btn btn-secondary">
+                    ← 上一步
+                </a>
+                <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                    下一步：黑暗三角測驗 →
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 說明卡片 -->
+<div class="card mt-3">
+    <div class="card-body">
+        <h6 class="card-title">🔮 關於星座分析</h6>
+        <p class="mb-0 small text-muted">
+            星座分析基於占星學傳統，結合你的 MBTI 和 Big Five 結果，提供多元視角。
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .zodiac-card {
+        transition: all 0.3s ease;
+        min-height: 120px;
+        position: relative;
+        border-width: 2px;
+    }
+    
+    .zodiac-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* 選中狀態 - 高亮顯示 */
+    .btn-check:checked + .zodiac-card {
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        color: white !important;
+        border-color: #7c3aed;
+        border-width: 3px;
+        transform: scale(1.05);
+        box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+        font-weight: 600;
+    }
+    
+    /* 確保選中時所有文字都是白色且清晰可見 */
+    .btn-check:checked + .zodiac-card .zodiac-icon {
+        color: white !important;
+        font-size: 2.5rem !important;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+    
+    .btn-check:checked + .zodiac-card strong {
+        color: white !important;
+        font-size: 1.1rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-check:checked + .zodiac-card small {
+        color: rgba(255, 255, 255, 0.95) !important;
+        font-weight: 500;
+    }
+    
+    .btn-check:checked + .zodiac-card .text-muted {
+        color: rgba(255, 255, 255, 0.95) !important;
+    }
+    
+    /* 未選中狀態保持原樣 */
+    .zodiac-card .zodiac-icon {
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const zodiacData = {
+        '牡羊座': { element: '火象', trait: '熱情、積極、勇敢、直率' },
+        '金牛座': { element: '土象', trait: '穩重、務實、可靠、耐心' },
+        '雙子座': { element: '風象', trait: '機智、靈活、好奇、善變' },
+        '巨蟹座': { element: '水象', trait: '敏感、體貼、顧家、情緒化' },
+        '獅子座': { element: '火象', trait: '自信、慷慨、領導力、愛面子' },
+        '處女座': { element: '土象', trait: '細心、完美主義、分析力強' },
+        '天秤座': { element: '風象', trait: '優雅、公正、善於交際、猶豫' },
+        '天蠍座': { element: '水象', trait: '神秘、專注、洞察力強、占有欲' },
+        '射手座': { element: '火象', trait: '樂觀、自由、冒險、直言不諱' },
+        '摩羯座': { element: '土象', trait: '務實、負責、有野心、保守' },
+        '水瓶座': { element: '風象', trait: '獨立、創新、理性、疏離' },
+        '雙魚座': { element: '水象', trait: '浪漫、同理心、直覺強、逃避' }
+    };
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const zodiacInfo = document.getElementById('zodiacInfo');
+    const zodiacName = document.getElementById('zodiacName');
+    const zodiacDesc = document.getElementById('zodiacDesc');
+    
+    document.querySelectorAll('input[name="zodiac"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const selected = this.value;
+            const data = zodiacData[selected];
+            
+            // 啟用提交按鈕
+            submitBtn.disabled = false;
+            
+            // 顯示星座資訊
+            zodiacInfo.style.display = 'block';
+            zodiacName.textContent = `${selected}（${data.element}星座）`;
+            zodiacDesc.textContent = `特質：${data.trait}`;
+            
+            // 滾動到資訊卡
+            zodiacInfo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+    });
+</script>
+{% endblock %}

@@ -33,7 +33,7 @@ export interface DarkTriadScores {
 export interface SessionData {
   user_name: string | null;
   mbti: MbtiType | null;
-  big_five_scores: BigFiveScores | null;
+  bigfive_scores: BigFiveScores | null;
   zodiac: string | null;
   dark_triad_scores: DarkTriadScores | null;
   has_results: boolean;
@@ -80,7 +80,7 @@ export interface ZodiacAnalysis {
 
 export interface ResultsAnalysis {
   mbti?: MbtiAnalysis;
-  big_five?: string;
+  bigfive?: string;
   zodiac?: ZodiacAnalysis;
   dark_triad?: string | null;
   comprehensive?: string;
@@ -88,7 +88,7 @@ export interface ResultsAnalysis {
 
 export interface ResultsResponse {
   mbti: MbtiType;
-  big_five_scores: BigFiveScores;
+  bigfive_scores: BigFiveScores;
   zodiac: string;
   dark_triad_scores: DarkTriadScores | null;
   analysis: ResultsAnalysis;
@@ -119,7 +119,7 @@ export interface ConversationSummary {
 export interface DiagnosticResponse {
   user_name: string | null;
   mbti: string | null;
-  big_five_scores: BigFiveScores | null;
+  bigfive_scores: BigFiveScores | null;
   zodiac: string | null;
   dark_triad_scores: DarkTriadScores | null;
   chat_messages_count: number;

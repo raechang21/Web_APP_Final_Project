@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Personality Paradox{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- htmx -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <!-- 自訂樣式 - Notion 風格 -->
+    <style>
+        :root {
+            /* Notion 風格色系 - 柔和舒適 */
+            --notion-bg: #FFFFFF;
+            --notion-bg-secondary: #F7F6F3;
+            --notion-text: #37352F;
+            --notion-text-secondary: #787774;
+            --notion-border: #E9E9E7;
+            --notion-hover: #F1F1EF;
+            
+            /* 主題強調色 - 柔和藍 */
+            --primary-color: #4A8FE7;
+            --primary-light: #E8F3FF;
+            --primary-dark: #2B6CB0;
+            
+            /* Big Five 維度專屬色 - Notion 風格柔和版 */
+            --openness: #EB5757;
+            --conscientiousness: #56C2B2;
+            --extraversion: #F2C94C;
+            --agreeableness: #9DBFAF;
+            --neuroticism: #BB87D1;
+            
+            /* 輔助色 */
+            --success: #77C293;
+            --warning: #F5A962;
+            --info: #6BB9F0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--notion-bg-secondary);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+            color: var(--notion-text);
+            line-height: 1.6;
+        }
+        
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+        
+        /* Notion 風格卡片 */
+        .card {
+            background: var(--notion-bg);
+            border: 1px solid var(--notion-border);
+            border-radius: 8px;
+            box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.1) 0px 9px 24px;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .card:hover {
+            box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 5px 10px, rgba(15, 15, 15, 0.15) 0px 15px 40px;
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            background: transparent;
+            color: var(--notion-text);
+            border-bottom: 1px solid var(--notion-border);
+            border-radius: 8px 8px 0 0 !important;
+            padding: 1.25rem 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        /* Notion 風格按鈕 */
+        .btn {
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.15s ease;
+            border: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px;
+        }
+        
+        .btn-secondary {
+            background-color: var(--notion-hover);
+            color: var(--notion-text);
+            border: 1px solid var(--notion-border);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--notion-border);
+            color: var(--notion-text);
+        }
+        
+        .btn-purple {
+            background-color: var(--neuroticism);
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-purple:hover {
+            background-color: #A86FC1;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: rgba(187, 135, 209, 0.3) 0px 4px 12px;
+        }
+        
+        /* Notion 風格進度條 */
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+            background-color: var(--notion-hover);
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            border-radius: 4px;
+            font-weight: 500;
+            transition: width 0.3s ease;
+        }
+        
+        /* Notion 風格提示框 */
+        .alert {
+            border-radius: 6px;
+            border: 1px solid;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-info {
+            background-color: #E8F3FF;
+            border-color: #4A8FE7;
+            color: #2B6CB0;
+        }
+        
+        .alert-success {
+            background-color: #E8F8EC;
+            border-color: #77C293;
+            color: #2D7A4F;
+        }
+        
+        .alert-warning {
+            background-color: #FFF3E0;
+            border-color: #F5A962;
+            color: #B85C00;
+        }
+        
+        /* Loading spinner */
+        .htmx-indicator {
+            display: none;
+        }
+        
+        .htmx-request .htmx-indicator {
+            display: inline-block;
+        }
+        
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.15em;
+        }
+        
+        /* Notion 風格測驗題目 */
+        .question-card {
+            background: var(--notion-bg);
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            border: 1px solid var(--notion-border);
+            transition: all 0.15s ease;
+        }
+        
+        .question-card:hover {
+            background-color: var(--notion-hover);
+            border-color: var(--primary-color);
+        }
+        
+        /* Notion 風格單選框/多選框 */
+        .form-check-input {
+            border: 2px solid var(--notion-border);
+            transition: all 0.15s ease;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .form-check-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+        
+        .form-check-label {
+            color: var(--notion-text);
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        /* Notion 風格導航進度條 */
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            gap: 0.5rem;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem 0.5rem;
+            background: var(--notion-bg);
+            border: 1px solid var(--notion-border);
+            border-radius: 6px;
+            position: relative;
+            font-size: 0.9rem;
+            color: var(--notion-text-secondary);
+            transition: all 0.2s ease;
+        }
+        
+        .step.active {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .step.completed {
+            background: #E8F8EC;
+            color: var(--success);
+            border-color: var(--success);
+        }
+        
+        /* Notion 風格輸入框 */
+        .form-control, .form-select {
+            border: 1px solid var(--notion-border);
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.15s ease;
+            background-color: var(--notion-bg);
+            color: var(--notion-text);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-light);
+            outline: none;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Notion 風格導航欄 -->
+    <nav class="navbar navbar-expand-lg" style="background-color: var(--notion-bg); border-bottom: 1px solid var(--notion-border); box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.05) 0px 3px 6px;">
+        <div class="container-fluid" style="max-width: 1200px; margin: 0 auto;">
+            <a class="navbar-brand" href="{{ url_for('restart') }}" style="color: var(--notion-text); font-weight: 600; font-size: 1.1rem;">
+                🧠 Personality Paradox
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border: 1px solid var(--notion-border);">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('restart') }}" style="color: var(--notion-text-secondary); font-weight: 500; padding: 0.5rem 1rem; transition: all 0.15s ease;" onmouseover="this.style.color='var(--primary-color)'" onmouseout="this.style.color='var(--notion-text-secondary)'">首頁</a>
+                    </li>
+                    {% if session.get('mbti') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('results') }}" style="color: var(--notion-text-secondary); font-weight: 500; padding: 0.5rem 1rem; transition: all 0.15s ease;" onmouseover="this.style.color='var(--primary-color)'" onmouseout="this.style.color='var(--notion-text-secondary)'">查看結果</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('restart') }}" style="color: var(--notion-text-secondary); font-weight: 500; padding: 0.5rem 1rem; transition: all 0.15s ease;" onmouseover="this.style.color='var(--primary-color)'" onmouseout="this.style.color='var(--notion-text-secondary)'">重新開始</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <div class="main-container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Notion 風格頁尾 -->
+    <footer class="text-center py-5" style="background-color: var(--notion-bg); border-top: 1px solid var(--notion-border); margin-top: 4rem;">
+        <p style="color: var(--notion-text); font-weight: 500; margin-bottom: 0.5rem;">Personality Paradox &copy; 2025</p>
+        <p style="color: var(--notion-text-secondary); font-size: 0.9rem;">社會科學程式設計期末專案</p>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

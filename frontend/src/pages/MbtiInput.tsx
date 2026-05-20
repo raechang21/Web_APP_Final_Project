@@ -34,7 +34,7 @@ export default function MbtiInput() {
     try {
       const response = await submitMbti(selected);
       patchSession({ mbti: response.mbti });
-      navigate("/big-five");
+      navigate("/bigfive");
     } catch (err) {
       setError(err instanceof Error ? err.message : "MBTI 儲存失敗");
     } finally {
