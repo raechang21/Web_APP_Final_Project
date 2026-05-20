@@ -1,0 +1,50 @@
+main.py
+Top-level app wiring. Must import the right route package: api, not old routers.
+
+config.py
+Everything depends on settings and paths.
+
+db.py
+Models and services depend on database setup.
+
+models/
+Database table definitions. Must be stable before memory/chat services.
+
+schemas/
+Request/response contracts. API routes depend on them.
+
+domain/
+Session quick login/chat history depends on DB models.
+
+services/analysis/
+Scoring logic used by test routes.
+
+services/utils/ or utils/
+Question JSON loaders used by test routes.
+
+services/llm/
+Gemini client and prompts used by chatbot/results.
+
+services/visualization/
+Chart-building logic used by results.
+
+services/results/
+Deep-analysis/summary logic used by results route.
+
+api/session.py
+Depends on schemas + memory service.
+
+api/tests.py
+Depends on schemas + scoring + data loader.
+
+api/results.py
+Depends on prompt templates, Gemini/deep analysis, visualization.
+
+api/chatbot.py
+Depends on memory service, Gemini, prompt classes, schemas.
+
+api/debug.py
+Dev-only routes, last.
+
+__init__.py files
+Clean after imports are stable.

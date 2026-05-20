@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..schemas.tests import QuickLoginIn, SessionOut, StartSessionIn
-from ..services import chat_memory
+from ..services.memory import chat_memory
 
 
 router = APIRouter(prefix="/api", tags=["session"])

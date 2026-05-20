@@ -14,11 +14,15 @@ class UserMemory(Base):
     __tablename__ = "user_memories"
 
     user_name: Mapped[str] = mapped_column(
-        String,
-        ForeignKey("users.user_name", ondelete="CASCADE"),
-        primary_key=True,
+        String(100),
+        ForeignKey("users.user_name", ondelete = "CASCADE"),
+        primary_key = True,
     )
-    memory_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    
+    memory_json: Mapped[dict] = mapped_column(JSON, default = dict)
+    
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
+        DateTime(timezone = True), 
+        default = _utcnow, 
+        onupdate = _utcnow
     )

@@ -7,9 +7,9 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from ..models_db.conversation import Conversation, Message
-from ..models_db.memory import UserMemory
-from ..models_db.user import User
+from ...models.conversation import Conversation, Message
+from ...models.memory import UserMemory
+from ...models.user import User
 
 
 def upsert_user(db: Session, *, user_name: str, **fields: Any) -> User:

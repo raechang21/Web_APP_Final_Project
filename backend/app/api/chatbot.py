@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..schemas.tests import ChatMessageIn
-from ..services import chat_memory
+from ..services.memory import chat_memory
 from ..services.llm.chatbot_prompts import ChatBotPrompts
 from ..services.llm.gemini_client import GeminiClient
 from ..services.models.dark_triad_result import DarkTriadResult
@@ -21,7 +21,7 @@ from ..services.models.test_result import (
 
 router = APIRouter(prefix="/api/chatbot", tags=["chatbot"])
 
-gemini_client = GeminiClient()
+client = GeminiClient()
 
 TRAIT_MAP = {
     "開放性": ("openness", "開放性"),
@@ -203,7 +203,7 @@ def chatbot_stream(
     def gen_llm():
         full = ""
         try:
-            for chunk in gemini_client.generate_stream(formatted, system_prompt):
+            for chunk in client.generate_stream(formatted, system_prompt):
                 if chunk:
                     full += chunk
                     yield _sse({"chunk": chunk})

@@ -200,12 +200,12 @@ def deep_analysis_stream(request: Request) -> StreamingResponse:
     def generate():
         full = ""
         try:
-            gemini_client = GeminiClient()
+            client = GeminiClient()
             system_prompt = (
                 "你是一位專業的心理學分析師。請使用繁體中文，提供完整且深入的分析。"
                 "回應時請使用純文字，不要使用任何 Markdown 格式標記。"
             )
-            for text in gemini_client.generate_stream(prompt, system_prompt):
+            for text in client.generate_stream(prompt, system_prompt):
                 if text:
                     full += text
                     yield f"data: {json.dumps({'chunk': text}, ensure_ascii=False)}\n\n"

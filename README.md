@@ -130,5 +130,5 @@ Check the following:
 This is normal. The backend will automatically create the SQLite database file on startup:
 
 ```text
-backend/personality_paradox.db
+backend/var/personality_paradox.db
 ```

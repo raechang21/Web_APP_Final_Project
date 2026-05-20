@@ -1,30 +1,34 @@
 from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 BACKEND_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = BACKEND_ROOT / "data"
+VAR_DIR = BACKEND_ROOT / "var"
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=str(BACKEND_ROOT / ".env"),
-        env_file_encoding="utf-8",
-        extra="ignore",
+        env_file = str(BACKEND_ROOT / ".env"),
+        env_file_encoding = "utf-8",
+        extra = "ignore",
     )
 
     SECRET_KEY: str = "dev-secret-change-me"
     FRONTEND_ORIGIN: str = "http://localhost:5173"
-    DATABASE_URL: str = f"sqlite:///{BACKEND_ROOT / 'personality_paradox.db'}"
+    DATABASE_URL: str = f"sqlite:///{BACKEND_ROOT / 'var' / 'personality_paradox.db'}"
+    
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.5-flash"
+    
     SESSION_MAX_AGE: int = 60 * 60 * 2  # 2 hours
 
 
 settings = Settings()
 
 
-# Domain constants (migrated from the original config.py)
+# Domain constants
 BIG_FIVE_QUESTIONS_COUNT = 15
 SCALE_MIN = 1
 SCALE_MAX = 6
@@ -75,4 +79,3 @@ COLORS = {
 
 BIGFIVE_QUESTIONS_FILE = str(DATA_DIR / "bigfive_questions.json")
 DARK_TRIAD_QUESTIONS_FILE = str(DATA_DIR / "dark_triad_questions.json")
-ZODIAC_DATA_FILE = str(DATA_DIR / "zodiac_traits.json")
