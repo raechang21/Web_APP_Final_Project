@@ -7,12 +7,12 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..db import get_db
-from ..schemas.tests import ChatMessageIn
+from ..schemas.chatbot import ChatMessageIn
 from ..services.memory import chat_memory
 from ..services.llm.chatbot_prompts import ChatBotPrompts
 from ..services.llm.gemini_client import GeminiClient
-from ..services.models.dark_triad_result import DarkTriadResult
-from ..services.models.test_result import (
+from ..domain.dark_triad_result import DarkTriadResult
+from ..domain.test_result import (
     BigFiveResult,
     MBTIResult,
     ZodiacResult,

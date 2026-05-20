@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from ..db import get_db
-from ..schemas.tests import QuickLoginIn, SessionOut, StartSessionIn
+from ..schemas.session import QuickLoginIn, SessionOut, StartSessionIn
 from ..services.memory import chat_memory
 
 
