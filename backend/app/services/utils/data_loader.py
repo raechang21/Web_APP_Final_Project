@@ -1,31 +1,24 @@
-"""
-資料載入工具
-"""
-
 import json
-from typing import Dict, List
-from ...config import BIGFIVE_QUESTIONS_FILE, DARK_TRIAD_QUESTIONS_FILE
+
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
+
+from ...config import BIG_FIVE_QUESTIONS_FILE, DARK_TRIAD_QUESTIONS_FILE
 
 
-def load_bigfive_questions() -> tuple[List[Dict], Dict[str, str]]:
-    """
-    載入 Big Five 題庫
-    
-    Returns:
-        (題目列表, 量表標籤)
-    """
-    with open(BIGFIVE_QUESTIONS_FILE, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-        return data['questions'], data['scale_labels']
+def _load_json(path: str) -> dict[str, Any]:
+    with Path(path).open("r", encoding = "utf-8") as file:
+        return json.load(file)
 
 
-def load_dark_triad_questions() -> List[Dict]:
-    """
-    載入黑暗三角題庫
-    
-    Returns:
-        題目列表
-    """
-    with open(DARK_TRIAD_QUESTIONS_FILE, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-        return data['questions']
+@lru_cache(maxsize = 1)
+def load_bigfive_questions() -> tuple[list[dict], dict[str, str]]:
+    data = _load_json(BIG_FIVE_QUESTIONS_FILE)
+    return data["questions"], data["scale_labels"]
+
+
+@lru_cache(maxsize = 1)
+def load_dark_triad_questions() -> list[dict[str, Any]]:
+    data = _load_json(DARK_TRIAD_QUESTIONS_FILE)
+    return data["questions"]

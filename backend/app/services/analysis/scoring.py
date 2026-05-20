@@ -42,7 +42,7 @@ def _calculate_dimension_scores(
             final_scores[dimension] = float(SCALE_MIN)
 
 
-def calculate_bigfive_scores(
+def calculate_big_five_scores(
     answers: dict[int, int], 
     questions: list[dict]
 ) -> dict[str, float]:

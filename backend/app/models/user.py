@@ -16,7 +16,7 @@ class User(Base):
     user_name: Mapped[str] = mapped_column(String(100), primary_key = True)
     
     mbti: Mapped[str | None] = mapped_column(String, nullable = True)
-    bigfive_scores: Mapped[dict | None] = mapped_column(JSON, nullable = True)
+    big_five_scores: Mapped[dict | None] = mapped_column(JSON, nullable = True)
     zodiac: Mapped[str | None] = mapped_column(String, nullable = True)
     dark_triad_scores: Mapped[dict | None] = mapped_column(JSON, nullable = True)
     

@@ -87,5 +87,5 @@ COLORS = {
     "neuroticism": "#F5222D",
 }
 
-BIGFIVE_QUESTIONS_FILE = str(DATA_DIR / "bigfive_questions.json")
+BIG_FIVE_QUESTIONS_FILE = str(DATA_DIR / "big_five_questions.json")
 DARK_TRIAD_QUESTIONS_FILE = str(DATA_DIR / "dark_triad_questions.json")

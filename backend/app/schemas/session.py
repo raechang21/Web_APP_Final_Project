@@ -12,7 +12,7 @@ class StartSessionIn(BaseModel):
 class SessionOut(BaseModel):
     user_name: str | None = None
     mbti: str | None = None
-    bigfive_scores: dict | None = None
+    big_five_scores: dict | None = None
     zodiac: str | None = None
     dark_triad_scores: dict | None = None
     has_results: bool = False
