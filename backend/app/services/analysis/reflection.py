@@ -4,7 +4,7 @@
 
 from typing import List, Tuple
 from ..models.test_result import MBTIResult, BigFiveResult, ZodiacResult
-from ..llm.ollama_client import OllamaClient
+from ..llm.gemini_client import GeminiClient
 from ..llm.prompt_templates import PromptTemplates
 
 
@@ -13,7 +13,7 @@ class ReflectionGenerator:
     
     def __init__(self):
         """初始化生成器"""
-        self.llm_client = OllamaClient()
+        self.llm_client = GeminiClient()
         self.prompt_templates = PromptTemplates()
     
     def generate_reflection(
