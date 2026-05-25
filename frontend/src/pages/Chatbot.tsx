@@ -186,6 +186,12 @@ export default function Chatbot() {
                   rows={4}
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      handleSend();
+                    }
+                  }}
                   placeholder="直接問：我的性格在關係裡常怎麼反應？"
                 />
                 <div className="flex justify-end">
