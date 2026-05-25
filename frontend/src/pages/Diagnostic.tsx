@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { fetchDiagnostic, setupTestData } from "@/api/results";
+import { fetchDiagnostic } from "@/api/results";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageShell, SectionHero } from "@/components/layout/PageShell";
@@ -28,12 +28,6 @@ export default function Diagnostic() {
     load();
   }, []);
 
-  async function handleSetup() {
-    await setupTestData();
-    await hydrate();
-    await load();
-  }
-
   return (
     <PageShell>
       <SectionHero
@@ -42,9 +36,6 @@ export default function Diagnostic() {
         description="當你要 smoke test results、deep-analysis 或 chatbot，而不想每次都重新填表單時，這頁可以直接注入測試 session。"
         actions={
           <>
-            <Button variant="secondary" onClick={handleSetup}>
-              注入測試資料
-            </Button>
             <Button onClick={() => navigate("/results")}>前往 Results</Button>
           </>
         }

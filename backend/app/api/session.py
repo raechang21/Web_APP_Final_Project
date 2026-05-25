@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..schemas.session import QuickLoginIn, SessionOut, StartSessionIn
-from ..services.chat_memory import repository as chat_memory
 from ..services.chat_memory.welcome import build_returning_user_welcome
+from ..services.users import repository as user_repository
 
 
 router = APIRouter(prefix = "/api", tags = ["session"])
@@ -29,7 +29,11 @@ def get_session(request: Request) -> SessionOut:
 
 
 @router.post("/session/start")
-def start_session(payload: StartSessionIn, request: Request) -> dict:
+def start_session(
+    payload: StartSessionIn, 
+    request: Request,
+    db: Session = Depends(get_db),
+) -> dict:
     name = payload.name.strip()
     if not name:
         raise HTTPException(400, "請輸入名字")
@@ -39,6 +43,12 @@ def start_session(payload: StartSessionIn, request: Request) -> dict:
     s["chat_messages"] = []
     s["quick_login"] = False
     s["welcome_message"] = f"嗨，{name}，歡迎你來這裡。今天想聊什麼呢？"
+    
+    user_repository.reset_user_profile(
+        db,
+        user_name = name,
+    )
+    
     return {"success": True, "user_name": name, "redirect": "/mbti"}
 
 
@@ -49,7 +59,8 @@ def quick_login(
     db: Session = Depends(get_db), 
 ) -> dict:
     name = payload.name.strip()
-    memory = chat_memory.load_memory(db, name)
+    memory = user_repository.load_memory(db, name)
+    
     if not memory:
         raise HTTPException(404, f"找不到「{name}」的測驗記錄，請先完成測驗")
 

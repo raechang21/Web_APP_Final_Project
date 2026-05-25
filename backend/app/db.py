@@ -41,6 +41,9 @@ def get_db() -> Iterator[Session]:
 def init_db() -> None:
     # Import models so they're registered with Base.metadata before create_all.
     from .models import user, conversation, memory  # noqa: F401
+    from .config import VAR_DIR
+
+    VAR_DIR.mkdir(parents=True, exist_ok=True)
     
     Base.metadata.create_all(bind=engine)
     _migrate_sqlite_schema()
@@ -58,11 +61,3 @@ def _migrate_sqlite_schema() -> None:
     with engine.begin() as connection:
         if "big_five_scores" not in user_columns:
             connection.execute(text("ALTER TABLE users ADD COLUMN big_five_scores JSON"))
-            if "bigfive_scores" in user_columns:
-                connection.execute(
-                    text(
-                        "UPDATE users "
-                        "SET big_five_scores = bigfive_scores "
-                        "WHERE big_five_scores IS NULL"
-                    )
-                )

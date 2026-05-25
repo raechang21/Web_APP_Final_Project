@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.orm import Session
 
 from ..config import ZODIAC_SIGNS
+from ..db import get_db
 from ..schemas.tests import (
     BigFiveAnswers,
     DarkTriadAnswers,
@@ -12,6 +14,7 @@ from ..services.analysis.scoring import (
     calculate_big_five_scores,
     calculate_dark_triad_scores,
 )
+from ..services.users import repository as user_repository
 from ..services.utils.data_loader import (
     load_big_five_questions,
     load_dark_triad_questions,
@@ -29,15 +32,36 @@ def _require_session_key(request: Request, key: str, message: str) -> None:
 def _validate_answer_count(answers: dict[int, int], questions: list[dict]) -> None:
     if len(answers) != len(questions):
         raise HTTPException(400, "請回答所有題目")
+    
+
+def _persist_profile(request: Request, db: Session) -> None:
+    user_name = request.session.get("user_name")
+    if not user_name:
+        return
+    
+    user_repository.save_user_profile(
+        db,
+        user_name = user_name, 
+        mbti = request.session.get("mbti"),
+        big_five_scores = request.session.get("big_five_scores"),
+        zodiac = request.session.get("zodiac"),
+        dark_triad_scores = request.session.get("dark_triad_scores"),
+    )
 
 
 @router.post("/mbti")
-def submit_mbti(payload: MBTIIn, request: Request) -> dict:
+def submit_mbti(
+    payload: MBTIIn, 
+    request: Request,
+    db: Session = Depends(get_db),
+) -> dict:
     mbti = payload.mbti_type.upper().strip()
     if mbti not in VALID_MBTI:
         raise HTTPException(400, "請輸入有效的 MBTI 類型")
     
     request.session["mbti"] = mbti
+    _persist_profile(request, db)
+    
     return {"mbti": mbti}
 
 
@@ -51,7 +75,11 @@ def big_five_questions() -> dict:
 
 
 @router.post("/big-five")
-def submit_big_five(payload: BigFiveAnswers, request: Request) -> dict:
+def submit_big_five(
+    payload: BigFiveAnswers, 
+    request: Request,
+    db: Session = Depends(get_db),
+) -> dict:
     _require_session_key(request, "mbti", "請先完成 MBTI 測驗")
     
     questions, _ = load_big_five_questions()
@@ -59,6 +87,7 @@ def submit_big_five(payload: BigFiveAnswers, request: Request) -> dict:
 
     scores = calculate_big_five_scores(payload.answers, questions)
     request.session["big_five_scores"] = scores
+    _persist_profile(request, db)
     
     return {"big_five_scores": scores}
 
@@ -69,13 +98,19 @@ def zodiacs() -> dict:
 
 
 @router.post("/zodiac")
-def submit_zodiac(payload: ZodiacIn, request: Request) -> dict:
+def submit_zodiac(
+    payload: ZodiacIn, 
+    request: Request,
+    db: Session = Depends(get_db)
+) -> dict:
     _require_session_key(request, "big_five_scores", "請先完成 Big Five 測驗")
     
     if payload.zodiac not in ZODIAC_SIGNS:
         raise HTTPException(400, "無效的星座")
     
     request.session["zodiac"] = payload.zodiac
+    _persist_profile(request, db)
+    
     return {"zodiac": payload.zodiac}
 
 
@@ -86,7 +121,11 @@ def dark_triad_questions() -> dict:
 
 
 @router.post("/dark-triad")
-def submit_dark_triad(payload: DarkTriadAnswers, request: Request) -> dict:
+def submit_dark_triad(
+    payload: DarkTriadAnswers, 
+    request: Request,
+    db: Session = Depends(get_db)
+) -> dict:
     _require_session_key(request, "zodiac", "請先選擇星座")
 
     questions = load_dark_triad_questions()
@@ -94,6 +133,7 @@ def submit_dark_triad(payload: DarkTriadAnswers, request: Request) -> dict:
 
     scores = calculate_dark_triad_scores(payload.answers, questions)
     request.session["dark_triad_scores"] = scores
+    _persist_profile(request, db)
 
     return {"dark_triad_scores": scores}
 

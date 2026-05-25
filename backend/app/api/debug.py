@@ -27,26 +27,10 @@ def diagnostic(request: Request) -> dict:
     return {
         "user_name": session.get("user_name"),
         "mbti": session.get("mbti"),
-        "big_five_scores": s.get("big_five_scores"),
+        "big_five_scores": session.get("big_five_scores"),
         "zodiac": session.get("zodiac"),
         "dark_triad_scores": session.get("dark_triad_scores"),
         "chat_messages_count": len(session.get("chat_messages", [])),
         "has_analysis": "analysis" in session,
         "has_comprehensive": "comprehensive" in session.get("analysis", {}),
     }
-
-
-@router.post("/setup-test-data")
-def setup_test_data(request: Request) -> dict:
-    session = request.session
-    session["mbti"] = "INTJ"
-    session["big_five_scores"] = {
-        "openness": 5.5,
-        "conscientiousness": 5.0,
-        "extraversion": 2.5,
-        "agreeableness": 4.0,
-        "neuroticism": 3.5,
-    }
-    session["zodiac"] = "天蠍座"
-    session["dark_triad_scores"] = None
-    return {"status": "ok", "mbti": session["mbti"]}

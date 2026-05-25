@@ -25,7 +25,7 @@ Go into the backend directory, create a virtual environment, install dependencie
 ```bash
 cd backend
 python -m venv .venv
-source .venv/Scripts/activate
+source .venv/bin/activate
 cp .env.example .env
 pip install -r requirements.txt
 mkdir var

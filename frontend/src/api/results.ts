@@ -29,8 +29,3 @@ export function fetchDiagnostic() {
   return apiRequest<DiagnosticResponse>("/api/diagnostic");
 }
 
-export function setupTestData() {
-  return apiRequest<{ status: string }>("/api/setup-test-data", {
-    method: "POST",
-  });
-}
