@@ -2,13 +2,13 @@ import json
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
-import ollama
 
-from ..config import settings
+from ..services.llm.gemini_client import GeminiClient
 from ..services.llm.prompt_templates import PromptTemplates
 
 
 router = APIRouter(prefix="/api", tags=["results"])
+llm_client = GeminiClient()
 
 
 def _interpret(score: float) -> str:
@@ -195,19 +195,15 @@ def deep_analysis_stream(request: Request) -> StreamingResponse:
     def generate():
         full = ""
         try:
-            response = ollama.generate(
-                model=settings.OLLAMA_MODEL,
-                prompt=prompt,
-                system=(
-                    "你是一位專業的心理學分析師。請使用繁體中文，提供完整且深入的分析。"
-                    "回應時請使用純文字，不要使用任何 Markdown 格式標記。"
-                ),
-                stream=True,
-                options={"temperature": 0.7, "top_p": 0.9, "num_predict": 2048},
+            system_prompt = (
+                "你是一位專業的心理學分析師。請使用繁體中文，提供完整且深入的分析。"
+                "回應時請使用純文字，不要使用任何 Markdown 格式標記。"
             )
-            for chunk in response:
-                if "response" in chunk:
-                    text = _clean_markdown(chunk["response"])
+            for chunk in llm_client.generate_stream(
+                prompt, system_prompt=system_prompt, num_predict=2048
+            ):
+                text = _clean_markdown(chunk)
+                if text:
                     full += text
                     yield f"data: {json.dumps({'chunk': text}, ensure_ascii=False)}\n\n"
 

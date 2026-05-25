@@ -16,9 +16,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "dev-secret-change-me"
     FRONTEND_ORIGIN: str = "http://localhost:5173"
     DATABASE_URL: str = f"sqlite:///{BACKEND_ROOT / 'personality_paradox.db'}"
-    OLLAMA_HOST: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "gemma3:4b"
-    OLLAMA_TIMEOUT: int = 60
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_TIMEOUT: int = 60
     SESSION_MAX_AGE: int = 60 * 60 * 2  # 2 hours
 
 
