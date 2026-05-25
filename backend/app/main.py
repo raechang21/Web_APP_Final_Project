@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
     yield
     
 
-app = FastAPI(title = "芙莉蓮諮商小助手", lifespan = lifespan)
+app = FastAPI(title = "Personality Paradox API", lifespan = lifespan)
 
 app.add_middleware(
     SessionMiddleware,
