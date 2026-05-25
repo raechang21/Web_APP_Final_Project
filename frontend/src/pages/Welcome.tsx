@@ -97,9 +97,9 @@ export default function Welcome() {
   return (
     <PageShell>
       <SectionHero
-        eyebrow="人格旅程"
-        title="把原本散落在 Jinja 裡的流程，重組成一條清楚的探索路徑。"
-        description="這一版先把核心流程重構成 React SPA：welcome、測驗流程、結果、深度分析，以及 SSE chatbot。後端 session 與 SQLite 記錄則沿用 FastAPI branch。"
+        eyebrow="Welcome"
+        title="從多元人格測驗到諮商小助手"
+        description="本系統結合坊間廣為流傳之人格評估工具，輔以具信效度之人格心理測驗：MBTI、星座、Big Five、黑暗三角人格（Dark Triad），進行 AI 綜合分析，打破單一測驗視角的限制，提供多面向的人格詮釋方式。"
       />
 
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -177,15 +177,12 @@ export default function Welcome() {
           <CardContent className="space-y-6">
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-stone-400">Session</p>
-              <h2 className="mt-2 font-display text-3xl text-ink">先決定你要怎麼進入</h2>
-              <p className="mt-3 text-sm leading-7 text-stone-600">
-                新使用者會從 MBTI 開始；舊使用者則可直接從 SQLite memory 回到 chatbot。
-              </p>
+              <h2 className="mt-2 font-display text-3xl text-ink">開始您的探索之旅</h2>
             </div>
 
             <div className="space-y-3">
               <label className="text-sm font-medium text-ink" htmlFor="name">
-                名字
+                請輸入您的使用者名稱
               </label>
               <Input
                 id="name"
@@ -198,15 +195,11 @@ export default function Welcome() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <Button onClick={handleStart} disabled={loading !== null}>
-                {loading === "new" ? "建立中..." : "開始重構後流程"}
+                {loading === "new" ? "建立中..." : "開始"}
               </Button>
               <Button variant="secondary" onClick={handleQuickLogin} disabled={loading !== null}>
                 {loading === "returning" ? "登入中..." : "快速登入回到 Chatbot"}
               </Button>
-            </div>
-
-            <div className="rounded-3xl bg-stone-50 p-4 text-sm leading-7 text-stone-600">
-              如果你只是要驗證前後端串接，也可以直接打開 <code>/diagnostic</code> 頁面塞測試資料。
             </div>
           </CardContent>
         </Card>

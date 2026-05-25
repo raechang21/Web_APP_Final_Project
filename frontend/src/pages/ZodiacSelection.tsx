@@ -69,8 +69,8 @@ export default function ZodiacSelection() {
       <FlowSteps />
       <SectionHero
         eyebrow="Step 03"
-        title="星座不是診斷，而是一個更生活化的性格視角。"
-        description="這一步刻意保留原案的柔性敘事風格，讓結果頁除了分數與模型，也保有一點可讀性與情緒溫度。"
+        title="星座"
+        description=" "
       />
 
       {loading ? <p className="text-stone-500">星座資料載入中...</p> : null}

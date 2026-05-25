@@ -47,8 +47,8 @@ export default function MbtiInput() {
       <FlowSteps />
       <SectionHero
         eyebrow="Step 01"
-        title="先用 MBTI 定位你的偏好起點。"
-        description="這裡先走簡化流程，直接選定類型；之後若要接 16Personalities 外部流程，也可以在這頁延伸。"
+        title="MBTI"
+        description="MBTI 將人格分為 16 種類型，每種都有獨特的特質組合。選擇最符合你的類型，作為後續測驗的起點。"
       />
       <a href="https://www.16personalities.com/tw/%E6%80%A7%E6%A0%BC%E6%B8%AC%E8%A9%A6"
         rel="noreferrer"
@@ -60,14 +60,11 @@ export default function MbtiInput() {
             🧭
           </div>
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.24em] text-stone-400">
-              Optional · 約 12 分鐘
-            </p>
             <h3 className="font-display text-2xl text-ink sm:text-3xl">
               還不知道你的 MBTI？先到 16Personalities 測一下。
             </h3>
             <p className="text-sm leading-7 text-stone-600 sm:text-base">
-              在外部完成 60 題測驗後，回來這頁直接選定你的類型即可。已經知道自己 MBTI 的人可以跳過。
+              完成 60 題測驗後，回來這頁選擇你的類型。已經知道自己 MBTI 的人可以跳過。
             </p>
           </div>
         </div>

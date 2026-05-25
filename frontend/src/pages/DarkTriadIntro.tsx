@@ -27,28 +27,28 @@ export default function DarkTriadIntro() {
       <FlowSteps />
       <SectionHero
         eyebrow="Step 04"
-        title="黑暗三角保留為選做，因為它應該是擴充，不該是阻礙。"
-        description="這部分更接近策略傾向與自我呈現風格，不適合作為單一標籤。你可以做，也可以跳過，整體流程都能繼續。"
+        title="黑暗三角人格（Dark Triad）"
+        description="黑暗三角（Dark Triad）是心理學中用來描述三種人格特質概念，本測驗題目參考張益慈、詹雨臻、陳學志（2021）。"
       />
 
       <Card>
         <CardContent className="space-y-5">
-          <h2 className="font-display text-3xl text-ink">什麼是 Dark Triad</h2>
+          <h2 className="font-display text-3xl text-ink">什麼是 Dark Triad ?</h2>
           <p className="text-sm leading-8 text-stone-600">
-            它聚焦於三種常被誤解的人格傾向：策略性、自我展示，以及規則邊界感。適度理解這些維度，有助於你辨識自己在壓力、競爭與人際操作中的習慣。
+            聚焦於三種常被誤解的人格傾向：策略性、自我關注，以及規範與衝動控制。理解這些維度，有助於辨識自己在壓力、競爭與人際互動中的反應習慣。
           </p>
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-3xl bg-[rgba(157,132,210,0.10)] p-5">
               <h3 className="font-medium text-ink">馬基維利主義</h3>
-              <p className="mt-2 text-sm leading-7 text-stone-600">你如何看待手段、布局與情勢掌控。</p>
+              <p className="mt-2 text-sm leading-7 text-stone-600">在人際中如何運用策略、掌握情勢，並看待利益與手段。</p>
             </div>
             <div className="rounded-3xl bg-[rgba(215,105,83,0.10)] p-5">
               <h3 className="font-medium text-ink">自戀</h3>
-              <p className="mt-2 text-sm leading-7 text-stone-600">你如何處理自信、舞台感與自我價值。</p>
+              <p className="mt-2 text-sm leading-7 text-stone-600">如何看待自己的重要性、獨特性、對肯定與關注的需求。</p>
             </div>
             <div className="rounded-3xl bg-stone-200/70 p-5">
-              <h3 className="font-medium text-ink">精神病態</h3>
-              <p className="mt-2 text-sm leading-7 text-stone-600">你在衝突、規範與刺激追求上的邊界感。</p>
+              <h3 className="font-medium text-ink">病態人格特質</h3>
+              <p className="mt-2 text-sm leading-7 text-stone-600">在衝動、規範、風險與人際衝突上的反應傾向。</p>
             </div>
           </div>
           <div className="flex flex-wrap justify-end gap-3">

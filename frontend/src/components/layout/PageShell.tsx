@@ -19,8 +19,8 @@ export function PageShell({
               ✦
             </div>
             <div>
-              <p className="font-display text-2xl">Personality Paradox</p>
-              <p className="text-sm text-stone-500">React + FastAPI refactor branch</p>
+              <p className="font-display text-2xl">Beyond Personality Labels</p>
+              <p className="text-sm text-stone-500">從多元人格測驗到諮商小助手＜(´⌯ ̫⌯`)＞</p>
             </div>
           </Link>
           <nav className="flex items-center gap-2 text-sm text-stone-500">

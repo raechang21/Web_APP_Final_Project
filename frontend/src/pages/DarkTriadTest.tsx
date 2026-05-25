@@ -69,8 +69,8 @@ export default function DarkTriadTest() {
       <FlowSteps />
       <SectionHero
         eyebrow="Optional Step"
-        title="這裡不把特質妖魔化，只把它放回行為策略的語境。"
-        description="每題都請以你真實的反應作答。這個區塊的分析價值，在於看你如何應對競爭、權威與自我展示。"
+        title="黑暗三角人格測驗"
+        description="每題請選擇最符合你的反應，幫助我們更全面分析你的性格特質。這些都是人格的自然組成部分！不是病理診斷喔～放輕鬆，跟著直覺選就對了😊。"
       />
 
       {loading ? <p className="text-stone-500">題目載入中...</p> : null}

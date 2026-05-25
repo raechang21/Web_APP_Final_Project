@@ -74,8 +74,8 @@ export default function Results() {
       <FlowSteps />
       <SectionHero
         eyebrow="Results"
-        title="這一頁先把資料整合成可讀的總覽，而不是急著堆更多動畫。"
-        description="MBTI、Big Five、Zodiac 與可選的 Dark Triad 現在都能透過 FastAPI JSON 直接餵進 React，這是整個前後端分離重構的關鍵交界。"
+        title="資料總覽"
+        description="MBTI、Big Five、Zodiac 與 Dark Triad 測驗結果一覽，並附上 AI 分析解讀。"
       />
 
       {error ? <p className="text-sm text-red-500">{error}</p> : null}

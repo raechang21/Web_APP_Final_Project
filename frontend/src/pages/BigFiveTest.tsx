@@ -72,8 +72,8 @@ export default function BigFiveTest() {
       <FlowSteps />
       <SectionHero
         eyebrow="Step 02"
-        title="Big Five 用連續維度，補上 MBTI 沒說清楚的細節。"
-        description="每題都直接照直覺選，不需要維持某種理想人設。這份量表的價值，在於它逼你面對日常行為傾向。"
+        title="Big Five"
+        description="這個測驗幫助你了解你的五大人格特質：開放性、嚴謹性、外向性、友善性、神經質（李仁豪、鍾芯瑜，2020）。每題請選擇最符合你的反應，幫助我們更全面地分析你的性格特質。這些都是人格的自然組成部分！放輕鬆，跟著直覺選就對了😊😊。"
       />
 
 

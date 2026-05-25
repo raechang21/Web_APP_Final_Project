@@ -156,8 +156,7 @@ export default function Chatbot() {
     <PageShell className="space-y-8">
       <SectionHero
         eyebrow="AI Chatbot"
-        title="這頁保留三欄式結構，但把資料流改成 React state + fetch streaming。"
-        description="左邊是人格摘要，中間是真正的對話流，右邊則是 quick prompts 與對話歷史。這樣之後要換模型、加 account、或加入多輪工作流都比較容易。"
+        title="你的個人化諮商小助手"
       />
 
       <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_280px]">
@@ -168,8 +167,7 @@ export default function Chatbot() {
             <div className="border-b border-stone-200 px-6 py-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm text-stone-500">Counseling Surface</p>
-                  <h2 className="font-display text-3xl text-ink">AI 諮商小助手</h2>
+                  <h2 className="font-display text-3xl text-ink">聊天室 (2)</h2>
                 </div>
               </div>
             </div>
