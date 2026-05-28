@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
-import {
-  cacheDeepAnalysis,
-  fetchDeepAnalysis,
-  streamDeepAnalysis,
-} from "@/api/results";
+import { fetchDeepAnalysis, streamDeepAnalysis } from "@/api/results";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { PageShell, SectionHero } from "@/components/layout/PageShell";
 import { useSessionStore } from "@/store/session";
 import type { DeepAnalysisResponse } from "@/types";
@@ -29,6 +26,7 @@ function writeCachedAnalysis(cacheKey: string, analysis: string) {
 }
 
 export default function DeepAnalysis() {
+  const navigate = useNavigate();
   const hasResults = useSessionStore((state) => state.has_results);
   const patchSession = useSessionStore((state) => state.patchSession);
   const [loading, setLoading] = useState(true);
@@ -84,13 +82,6 @@ export default function DeepAnalysis() {
 
             writeCachedAnalysis(cacheKey, analysisBuffer);
             patchSession({ has_analysis: true });
-            void cacheDeepAnalysis(analysisBuffer).catch((err) => {
-              if (active) {
-                setError(
-                  err instanceof Error ? err.message : "分析快取保存失敗",
-                );
-              }
-            });
           }
         });
       })
@@ -135,6 +126,15 @@ export default function DeepAnalysis() {
           </article>
         </CardContent>
       </Card>
+
+      <div className="flex flex-wrap justify-end gap-3">
+        <Button variant="secondary" onClick={() => navigate("/results")}>
+          返回 Result
+        </Button>
+        <Button variant="accent" onClick={() => navigate("/chatbot")}>
+          打開 Chatbot
+        </Button>
+      </div>
     </PageShell>
   );
 }

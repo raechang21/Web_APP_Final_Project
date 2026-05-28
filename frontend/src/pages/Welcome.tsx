@@ -12,13 +12,13 @@ import { cn } from "@/lib/utils";
 const cards = [
   {
     icon: "🎯",
-    title: "MBTI 類型",
+    title: "MBTI",
     summary: "輸入你的 MBTI\n或前往測驗網站",
-    detail: "輸入你的 MBTI 類型，或前往測驗網站完成簡單測驗，快速了解自己在人際互動、思考方式、決策習慣與生活偏好上的傾向，幫助你更清楚認識自己的性格輪廓。",
+    detail: "輸入你的 MBTI，或前往測驗網站完成簡單測驗，快速了解自己在人際互動、思考方式、決策習慣與生活偏好上的傾向，幫助你更清楚認識自己的性格輪廓。",
   },
   {
     icon: "📊",
-    title: "Big Five 測驗",
+    title: "大五人格",
     summary: "15 個問題\n快速了解真實的你！",
     detail: "透過 15 個簡短題目，從開放性、盡責性、外向性、親和性與情緒穩定性五個面向分析你的性格特質，幫助你更全面理解自己的行為模式與內在傾向。",
   },
@@ -26,25 +26,25 @@ const cards = [
     icon: "⭐",
     title: "星座選擇",
     summary: "你是哪個星座?\n點一下就知道!",
-    detail: "選擇你的星座,探索星座性格中常見的特質描述,看看你在人際關係、情緒表達與生活態度上是否符合星座印象,作為輕鬆有趣的自我觀察入口。",
+    detail: "選擇你的星座，探索星座性格中常見的特質描述，看看你在人際關係、情緒表達與生活態度上是否符合星座印象，作為輕鬆有趣的自我觀察入口。",
   },
   {
     icon: "🪞",
     title: "黑暗三角",
     summary: "19 題策略思維\n與行為風格評估",
-    detail: "透過 19 題測驗,評估你在策略思維、競爭傾向、自我表現與人際判斷上的風格。此測驗並非診斷,而是協助你理解自己在特定情境下可能展現的行為傾向。",
+    detail: "透過 19 題測驗，評估你在策略思維、競爭傾向、自我表現與人際判斷上的風格。此測驗並非診斷，而是協助你理解自己在特定情境下可能展現的行為傾向。",
   },
   {
     icon: "🧠",
     title: "結果分析",
     summary: "獲得完整的\n人格分析報告",
-    detail: "系統會整合你的 MBTI、Big Five、星座與黑暗三角測驗結果,產出完整的人格分析報告,幫助你從不同角度看見自己的性格特質、優勢與可能需要留意的面向。",
+    detail: "系統會整合你的 MBTI、Big Five、星座與黑暗三角測驗結果，產出完整的人格分析報告，幫助你從不同角度看見自己的性格特質、優勢與可能需要留意的面向。",
   },
   {
     icon: "💬",
-    title: "對話助手",
-    summary: "AI 助手解答\n人格相關問題",
-    detail: "有任何人格測驗相關問題,都可以詢問 AI 對話助手。無論是想理解測驗結果、比較不同人格類型,或進一步探索自己的性格特質,都能獲得即時且清楚的回覆。",
+    title: "諮詢助手",
+    summary: "AI 諮詢助手解答\n人格相關問題",
+    detail: "有任何人格測驗相關問題，都可以詢問 AI 諮詢助手。無論是想理解測驗結果、比較不同人格類型，或進一步探索自己的性格特質，都能獲得即時且清楚的回覆。",
   },
 ];
 
@@ -66,9 +66,9 @@ export default function Welcome() {
       if (!value) {
         throw new Error("請先輸入你的名字");
       }
-      await startSession(value);
+      const response = await startSession(value);
       await hydrate();
-      navigate("/mbti");
+      navigate(response.redirect);
     } catch (err) {
       setError(err instanceof Error ? err.message : "初始化 session 失敗");
     } finally {
@@ -99,7 +99,7 @@ export default function Welcome() {
       <SectionHero
         eyebrow="Welcome"
         title="從多元人格測驗到諮商小助手"
-        description="本系統結合坊間廣為流傳之人格評估工具，輔以具信效度之人格心理測驗：MBTI、星座、Big Five、黑暗三角人格（Dark Triad），進行 AI 綜合分析，打破單一測驗視角的限制，提供多面向的人格詮釋方式。"
+        description="本系統結合坊間廣為流傳之人格評估工具，輔以具信效度之人格心理測驗：MBTI、大五人格、星座、黑暗三角人格（Dark Triad），進行 AI 綜合分析，打破單一測驗視角的限制，提供多面向的人格詮釋方式。"
       />
 
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -138,7 +138,6 @@ export default function Welcome() {
                   {cards[expanded].icon}
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-stone-400">Detail</p>
                   <h3 className="mt-1 font-display text-3xl text-ink sm:text-4xl">
                     {cards[expanded].title}
                   </h3>

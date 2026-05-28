@@ -31,16 +31,6 @@ export function streamDeepAnalysis(
   return streamSse("/api/deep-analysis/stream", { method: "GET" }, onEvent);
 }
 
-export function cacheDeepAnalysis(comprehensive: string) {
-  return apiRequest<{ success: boolean; has_analysis: boolean }>(
-    "/api/deep-analysis/cache",
-    {
-      method: "POST",
-      body: { comprehensive },
-    },
-  );
-}
-
 export function fetchDiagnostic() {
   return apiRequest<DiagnosticResponse>("/api/diagnostic");
 }

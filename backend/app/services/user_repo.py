@@ -30,7 +30,8 @@ def upsert_user(
     user.bigfive_scores = bigfive_scores
     user.zodiac = zodiac
     user.dark_triad_scores = dark_triad_scores
-    user.deep_analysis = deep_analysis
+    if deep_analysis is not None:
+        user.deep_analysis = deep_analysis
         
     return user
 
@@ -66,6 +67,8 @@ def save_user_profile(
     memory = db.get(UserMemory, user_name)
     existing = memory.memory_json if memory else {}
     
+    saved_deep_analysis = deep_analysis if deep_analysis is not None else existing.get("deep_analysis")
+
     memory_data = {
         **existing, 
         "user_name": user_name,
@@ -73,7 +76,7 @@ def save_user_profile(
         "bigfive_scores": bigfive_scores,
         "zodiac": zodiac,
         "dark_triad_scores": dark_triad_scores,
-        "deep_analysis": deep_analysis,
+        "deep_analysis": saved_deep_analysis,
         "last_updated": _now_iso(),
     }
     

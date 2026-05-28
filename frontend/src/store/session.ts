@@ -63,11 +63,16 @@ export const useSessionStore = create<SessionStore>((set) => ({
       });
     }
   },
-  clear: () =>
+  clear: () => {
+    sessionStorage.removeItem("mbti_selected");
+    sessionStorage.removeItem("zodiac_selected");
+    sessionStorage.removeItem("bigfive_answers");
+    sessionStorage.removeItem("dark_triad_answers");
     set({
       ...emptySession,
       status: "ready",
       error: null,
       hydrated: true,
-    }),
+    });
+  },
 }));
