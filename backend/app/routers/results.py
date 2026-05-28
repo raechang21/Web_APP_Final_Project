@@ -1,8 +1,11 @@
 import json
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
 
+from ..db import get_db
+from ..services import user_repo
 from ..services.llm.gemini_client import GeminiClient
 from ..services.llm.prompt_templates import PromptTemplates
 
@@ -47,16 +50,21 @@ def get_results(request: Request) -> dict:
                 PromptTemplates.get_dark_triad_template(dark_triad) if dark_triad else None
             ),
         }
-        s["analysis"] = analysis
+        analysis = {
+            "mbti": PromptTemplates.get_mbti_template(mbti),
+            "bigfive": PromptTemplates.get_bigfive_template(bigfive),
+            "zodiac": PromptTemplates.get_zodiac_template(zodiac),
+            "dark_triad": PromptTemplates.get_dark_triad_template(dark_triad) if dark_triad else None,
+        }
 
     return {
         "mbti": mbti,
         "bigfive_scores": bigfive,
         "zodiac": zodiac,
         "dark_triad_scores": dark_triad,
-        "analysis": s["analysis"],
+        "analysis": analysis,
     }
-
+        
 
 @router.get("/bigfive-chart")
 def bigfive_chart(request: Request) -> dict:
@@ -156,7 +164,11 @@ def _build_comprehensive_prompt(
 
 【分析要求】
 1. **使用第二人稱「你」**
-2. **必須整合所有測驗結果**：MBTI 切入 → Big Five 驗證 → 星座呼應 → 黑暗三角（若有）
+2. **請嚴格依照以下順序，將分析分為獨立的段落（每個段落之間【必須使用一個空白行】隔開）：**
+   - 第一段：專注於 MBTI 類型的核心特質與行為模式分析。
+   - 第二段：專注於 Big Five 人格特質分析（嚴格依照判讀標準描述高低）。
+   - 第三段：專注於星座特質分析，並探討它與前面測驗的關聯或矛盾。
+   - 第四段（若有黑暗三角數據）：專注於黑暗三角特質分析。
 3. **嚴格依照「分數判讀標準」描述 Big Five 特質高低**
 4. **聚焦於不同測驗結果之間的「呼應」與「矛盾」**
 5. **不要在文中提及具體分數**
@@ -186,14 +198,34 @@ def _clean_markdown(text: str) -> str:
     return text
 
 
+def _is_gemini_error_text(text: str) -> bool:
+    lowered = text.lower()
+    error_markers = (
+        "gemini api",
+        "gemini_api_key",
+        "getaddrinfo",
+        "errno",
+        "api key",
+        "permission",
+        "發生錯誤",
+        "錯誤",
+        "error",
+    )
+    return any(marker in lowered for marker in error_markers)
+
+
 @router.get("/deep-analysis/stream")
-def deep_analysis_stream(request: Request) -> StreamingResponse:
+def deep_analysis_stream(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> StreamingResponse:
     mbti, bigfive, zodiac, dark_triad = _ensure_results(request)
     prompt = _build_comprehensive_prompt(mbti, bigfive, zodiac, dark_triad)
-    s = request.session
+    user_name = request.session.get("user_name")
 
     def generate():
         full = ""
+        gemini_failed = False
         try:
             system_prompt = (
                 "你是一位專業的心理學分析師。請使用繁體中文，提供完整且深入的分析。"
@@ -204,12 +236,21 @@ def deep_analysis_stream(request: Request) -> StreamingResponse:
             ):
                 text = _clean_markdown(chunk)
                 if text:
+                    if _is_gemini_error_text(text):
+                        gemini_failed = True
                     full += text
                     yield f"data: {json.dumps({'chunk': text}, ensure_ascii=False)}\n\n"
 
-            analysis = s.get("analysis", {})
-            analysis["comprehensive"] = full
-            s["analysis"] = analysis
+            if not gemini_failed and full.strip():
+                user_repo.save_user_profile(
+                    db,
+                    user_name=user_name,
+                    mbti=mbti,
+                    bigfive_scores=bigfive,
+                    zodiac=zodiac,
+                    dark_triad_scores=dark_triad,
+                    deep_analysis=full,
+                )
             yield f"data: {json.dumps({'done': True})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"

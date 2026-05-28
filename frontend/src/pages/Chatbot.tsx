@@ -156,6 +156,7 @@ export default function Chatbot() {
     <PageShell className="space-y-8">
       <SectionHero
         eyebrow="AI Chatbot"
+        description=""
         title="你的個人化諮商小助手"
       />
 

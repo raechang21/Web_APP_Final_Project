@@ -140,6 +140,26 @@ def list_conversations(db: Session, user_name: str) -> list[dict]:
     return out
 
 
+def latest_conversation_messages(db: Session, user_name: str) -> list[dict]:
+    conv = (
+        db.query(Conversation)
+        .filter_by(user_name=user_name)
+        .order_by(Conversation.started_at.desc())
+        .first()
+    )
+    if not conv:
+        return []
+
+    return [
+        {
+            "role": message.role,
+            "content": message.content,
+            "timestamp": message.created_at.isoformat() if message.created_at else None,
+        }
+        for message in conv.messages
+    ]
+
+
 def delete_conversation(
     db: Session, *, user_name: str, conversation_id: int
 ) -> bool:

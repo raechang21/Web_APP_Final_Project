@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..schemas.tests import QuickLoginIn, SessionOut, StartSessionIn
-from ..services import chat_memory
+from ..services import user_repo
 
 
 router = APIRouter(prefix="/api", tags=["session"])
@@ -12,12 +12,13 @@ router = APIRouter(prefix="/api", tags=["session"])
 @router.get("/session", response_model=SessionOut)
 def get_session(request: Request) -> SessionOut:
     s = request.session
-    has_results = bool(s.get("mbti") and s.get("bigfive_scores") and s.get("zodiac"))
-    has_analysis = bool(s.get("analysis", {}).get("comprehensive"))
+    bigfive_scores = s.get("bigfive_scores") or s.get("big_five_scores")
+    has_results = bool(s.get("mbti") and bigfive_scores and s.get("zodiac"))
+    has_analysis = False
     return SessionOut(
         user_name=s.get("user_name"),
         mbti=s.get("mbti"),
-        bigfive_scores=s.get("bigfive_scores"),
+        bigfive_scores=bigfive_scores,
         zodiac=s.get("zodiac"),
         dark_triad_scores=s.get("dark_triad_scores"),
         has_results=has_results,
@@ -28,16 +29,26 @@ def get_session(request: Request) -> SessionOut:
 
 
 @router.post("/session/start")
-def start_session(payload: StartSessionIn, request: Request) -> dict:
+def start_session(
+    payload: StartSessionIn, 
+    request: Request, 
+    db: Session = Depends(get_db), 
+) -> dict:
     name = payload.name.strip()
     if not name:
         raise HTTPException(400, "請輸入名字")
 
+    request.session.clear()
     s = request.session
     s["user_name"] = name
-    s["chat_messages"] = []
     s["quick_login"] = False
     s["welcome_message"] = f"嗨，{name}，歡迎你來這裡。今天想聊什麼呢？"
+    
+    user_repo.reset_user_profile(
+        db,
+        user_name = name,
+    )
+
     return {"success": True, "user_name": name, "redirect": "/mbti"}
 
 
@@ -46,20 +57,22 @@ def quick_login(
     payload: QuickLoginIn, request: Request, db: Session = Depends(get_db)
 ) -> dict:
     name = payload.name.strip()
-    memory = chat_memory.load_memory(db, name)
+    memory = user_repo.load_memory(db, name)
     if not memory:
         raise HTTPException(404, f"找不到「{name}」的測驗記錄，請先完成測驗")
 
-    if not memory.get("mbti") or not memory.get("bigfive_scores"):
+    bigfive_scores = memory.get("bigfive_scores") or memory.get("big_five_scores")
+
+    if not memory.get("mbti") or not bigfive_scores:
         raise HTTPException(400, f"「{name}」的測驗記錄不完整，請重新完成測驗")
 
+    request.session.clear()
     s = request.session
     s["user_name"] = name
     s["mbti"] = memory.get("mbti")
-    s["bigfive_scores"] = memory.get("bigfive_scores")
+    s["bigfive_scores"] = bigfive_scores
     s["zodiac"] = memory.get("zodiac")
     s["dark_triad_scores"] = memory.get("dark_triad_scores")
-    s["chat_messages"] = []
     s["quick_login"] = True
 
     welcome = f"嗨，{name}，歡迎回來！很高興再次見到你。"

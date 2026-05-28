@@ -1,6 +1,6 @@
 from collections.abc import Iterator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from .config import settings
@@ -27,3 +27,18 @@ def init_db() -> None:
     # Import models so they're registered with Base.metadata before create_all.
     from .models_db import user, conversation, memory  # noqa: F401
     Base.metadata.create_all(bind=engine)
+    _migrate_sqlite_schema()
+
+
+def _migrate_sqlite_schema() -> None:
+    if not settings.DATABASE_URL.startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "users" not in inspector.get_table_names():
+        return
+
+    user_columns = {column["name"] for column in inspector.get_columns("users")}
+    with engine.begin() as conn:
+        if "deep_analysis" not in user_columns:
+            conn.execute(text("ALTER TABLE users ADD COLUMN deep_analysis VARCHAR"))

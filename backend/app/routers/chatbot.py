@@ -80,7 +80,7 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _persist_memory(request: Request, db: Session) -> None:
+def _persist_memory_with_messages(request: Request, db: Session, chat_messages: list[dict]) -> None:
     s = request.session
     user_name = s.get("user_name")
     if not user_name:
@@ -88,7 +88,7 @@ def _persist_memory(request: Request, db: Session) -> None:
     chat_memory.save_chat_memory(
         db,
         user_name=user_name,
-        chat_messages=s.get("chat_messages", []),
+        chat_messages=chat_messages,
         mbti=s.get("mbti"),
         bigfive_scores=s.get("bigfive_scores"),
         zodiac=s.get("zodiac"),
@@ -112,7 +112,7 @@ def chatbot_stream(
 
     s = request.session
     user_name = s.get("user_name")
-    chat_history: list[dict] = s.get("chat_messages", [])
+    chat_history = chat_memory.latest_conversation_messages(db, user_name) if user_name else []
 
     # First message → treat as user name; check DB for returning user.
     if not user_name and not chat_history:
@@ -120,12 +120,12 @@ def chatbot_stream(
         memory = chat_memory.load_memory(db, potential_name)
 
         if memory:
+            bigfive_scores = memory.get("bigfive_scores") or memory.get("big_five_scores")
             s["user_name"] = potential_name
             s["mbti"] = memory.get("mbti")
-            s["bigfive_scores"] = memory.get("bigfive_scores")
+            s["bigfive_scores"] = bigfive_scores
             s["zodiac"] = memory.get("zodiac")
             s["dark_triad_scores"] = memory.get("dark_triad_scores")
-            s["chat_messages"] = []
 
             welcome = f"嗨，{potential_name}，歡迎回來！很高興再次見到你。"
             summaries = memory.get("conversation_summaries") or []
@@ -144,7 +144,6 @@ def chatbot_stream(
             return StreamingResponse(gen_back(), media_type="text/event-stream")
 
         s["user_name"] = potential_name
-        s["chat_messages"] = []
         welcome = f"嗨，{potential_name}，歡迎你來這裡。今天想聊什麼呢？"
 
         def gen_new():
@@ -184,10 +183,12 @@ def chatbot_stream(
     # Score query short-circuit (no LLM call).
     if _is_score_query(user_message):
         direct = _score_response(user_message, bigfive_result)
-        chat_history.append({"role": "user", "content": user_message, "timestamp": _now_iso()})
-        chat_history.append({"role": "assistant", "content": direct, "timestamp": _now_iso()})
-        s["chat_messages"] = chat_history
-        _persist_memory(request, db)
+        turn_messages = [
+            {"role": "user", "content": user_message, "timestamp": _now_iso()},
+            {"role": "assistant", "content": direct, "timestamp": _now_iso()},
+        ]
+        chat_memory.save_conversation(db, user_name=user_name, messages=turn_messages)
+        _persist_memory_with_messages(request, db, turn_messages)
 
         def gen_direct():
             yield _sse({"chunk": direct})
@@ -198,7 +199,7 @@ def chatbot_stream(
     # Trim history to last 6 messages.
     recent_history = chat_history[-6:]
     formatted = ChatBotPrompts.format_user_message(user_message, recent_history)
-    chat_history.append({"role": "user", "content": user_message, "timestamp": _now_iso()})
+    user_entry = {"role": "user", "content": user_message, "timestamp": _now_iso()}
 
     def gen_llm():
         full = ""
@@ -207,10 +208,12 @@ def chatbot_stream(
                 if chunk:
                     full += chunk
                     yield _sse({"chunk": chunk})
-            chat_history.append({"role": "assistant", "content": full, "timestamp": _now_iso()})
-            s["chat_messages"] = chat_history
-            chat_memory.save_conversation(db, user_name=user_name, messages=chat_history)
-            _persist_memory(request, db)
+            turn_messages = [
+                user_entry,
+                {"role": "assistant", "content": full, "timestamp": _now_iso()},
+            ]
+            chat_memory.save_conversation(db, user_name=user_name, messages=turn_messages)
+            _persist_memory_with_messages(request, db, turn_messages)
             yield _sse({"done": True})
         except Exception as e:
             yield _sse({"error": str(e)})
@@ -224,7 +227,6 @@ def chatbot_stream(
 
 @router.post("/clear")
 def chatbot_clear(request: Request) -> dict:
-    request.session["chat_messages"] = []
     return {"success": True}
 
 
@@ -232,17 +234,17 @@ def chatbot_clear(request: Request) -> dict:
 def chatbot_save(request: Request, db: Session = Depends(get_db)) -> dict:
     s = request.session
     user_name = s.get("user_name")
-    messages = s.get("chat_messages", [])
     if not user_name:
         raise HTTPException(400, "尚未取得使用者名稱")
-    chat_memory.save_conversation(db, user_name=user_name, messages=messages)
-    _persist_memory(request, db)
     return {"success": True, "message": "對話已保存"}
 
 
 @router.get("/history")
-def chatbot_history(request: Request) -> dict:
-    return {"messages": request.session.get("chat_messages", [])}
+def chatbot_history(request: Request, db: Session = Depends(get_db)) -> dict:
+    user_name = request.session.get("user_name")
+    if not user_name:
+        return {"messages": []}
+    return {"messages": chat_memory.latest_conversation_messages(db, user_name)}
 
 
 @router.get("/history/all")
