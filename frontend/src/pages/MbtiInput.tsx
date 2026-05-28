@@ -17,7 +17,13 @@ export default function MbtiInput() {
   const hydrated = useSessionStore((state) => state.hydrated);
   const userName = useSessionStore((state) => state.user_name);
   const currentMbti = useSessionStore((state) => state.mbti);
-  const [selected, setSelected] = useState<MbtiType | null>(currentMbti);
+  const [selected, setSelected] = useState<MbtiType | null>(() => {
+    try {
+      return (sessionStorage.getItem("mbti_selected") as MbtiType | null) ?? currentMbti;
+    } catch {
+      return currentMbti;
+    }
+  });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,7 +103,10 @@ export default function MbtiInput() {
                           ? "ring-2 ring-ink"
                           : "border-stone-200 bg-white hover:border-stone-300",
                       )}
-                      onClick={() => setSelected(item.type)}
+                      onClick={() => {
+                        setSelected(item.type);
+                        sessionStorage.setItem("mbti_selected", item.type);
+                      }}
                       type="button"
                     >
                       <div className="flex h-16 w-16 items-center justify-center overflow-hidden">

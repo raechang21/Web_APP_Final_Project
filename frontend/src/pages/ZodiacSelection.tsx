@@ -3,7 +3,6 @@ import { Navigate, useNavigate } from "react-router-dom";
 
 import { fetchZodiacs, submitZodiac } from "@/api/tests";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { FlowSteps } from "@/components/layout/FlowSteps";
 import { PageShell, SectionHero } from "@/components/layout/PageShell";
 import { ZODIAC_META } from "@/lib/personality";
@@ -15,7 +14,13 @@ export default function ZodiacSelection() {
   const patchSession = useSessionStore((state) => state.patchSession);
   const bigfive = useSessionStore((state) => state.bigfive_scores);
   const [items, setItems] = useState<string[]>([]);
-  const [selected, setSelected] = useState<string | null>(useSessionStore.getState().zodiac);
+  const [selected, setSelected] = useState<string | null>(() => {
+    try {
+      return sessionStorage.getItem("zodiac_selected") ?? useSessionStore.getState().zodiac;
+    } catch {
+      return useSessionStore.getState().zodiac;
+    }
+  });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -90,7 +95,10 @@ export default function ZodiacSelection() {
                   ? "border-lavender bg-[rgba(157,132,210,0.15)] ring-2 ring-lavender"
                   : "border-stone-200 bg-paper hover:border-stone-300",
               )}
-              onClick={() => setSelected(sign)}
+              onClick={() => {
+                setSelected(sign);
+                sessionStorage.setItem("zodiac_selected", sign);
+              }}
             >
               <div className="text-4xl">{meta?.icon ?? "⭐"}</div>
               <h2 className="mt-4 font-display text-3xl text-ink">{sign}</h2>

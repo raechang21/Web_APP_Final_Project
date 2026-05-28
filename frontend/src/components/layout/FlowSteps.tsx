@@ -23,7 +23,7 @@ export function FlowSteps() {
             )}
           >
             <div className="text-xs uppercase tracking-[0.24em] opacity-70">
-              {String(index + 1).padStart(2, "0")}
+              {String(index).padStart(2, "0")}
             </div>
             <div className="mt-1 font-medium">{step.label}</div>
           </Link>

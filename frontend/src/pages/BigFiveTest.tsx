@@ -16,7 +16,14 @@ export default function BigFiveTest() {
   const patchSession = useSessionStore((state) => state.patchSession);
   const mbti = useSessionStore((state) => state.mbti);
   const [questions, setQuestions] = useState<BigFiveQuestion[]>([]);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [answers, setAnswers] = useState<Record<number, number>>(() => {
+    try {
+      const saved = sessionStorage.getItem("bigfive_answers");
+      return saved ? (JSON.parse(saved) as Record<number, number>) : {};
+    } catch {
+      return {};
+    }
+  });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -106,10 +113,11 @@ export default function BigFiveTest() {
                           : "border-stone-200 bg-white text-stone-600 hover:border-stone-300",
                       )}
                       onClick={() =>
-                        setAnswers((current) => ({
-                          ...current,
-                          [question.id]: option.value,
-                        }))
+                        setAnswers((current) => {
+                          const next = { ...current, [question.id]: option.value };
+                          sessionStorage.setItem("bigfive_answers", JSON.stringify(next));
+                          return next;
+                        })
                       }
                     >
                       <div className="text-2xl">{option.emoji}</div>

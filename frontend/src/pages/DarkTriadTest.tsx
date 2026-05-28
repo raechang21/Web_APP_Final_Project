@@ -16,7 +16,14 @@ export default function DarkTriadTest() {
   const zodiac = useSessionStore((state) => state.zodiac);
   const patchSession = useSessionStore((state) => state.patchSession);
   const [questions, setQuestions] = useState<DarkTriadQuestion[]>([]);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [answers, setAnswers] = useState<Record<number, number>>(() => {
+    try {
+      const saved = sessionStorage.getItem("dark_triad_answers");
+      return saved ? (JSON.parse(saved) as Record<number, number>) : {};
+    } catch {
+      return {};
+    }
+  });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -102,10 +109,11 @@ export default function DarkTriadTest() {
                           : "border-stone-200 bg-white text-stone-600 hover:border-stone-300",
                       )}
                       onClick={() =>
-                        setAnswers((current) => ({
-                          ...current,
-                          [question.id]: option.value,
-                        }))
+                        setAnswers((current) => {
+                          const next = { ...current, [question.id]: option.value };
+                          sessionStorage.setItem("dark_triad_answers", JSON.stringify(next));
+                          return next;
+                        })
                       }
                     >
                       <div className="text-2xl">{option.emoji}</div>
