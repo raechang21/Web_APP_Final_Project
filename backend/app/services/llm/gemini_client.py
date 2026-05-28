@@ -100,7 +100,7 @@ class GeminiClient:
         except Exception as e:
             return f"生成失敗：{str(e)}"
 
-    def generate_stream(self, prompt: str, system_prompt: str = None, num_predict: int = 512):
+    def generate_stream(self, prompt: str, system_prompt: str = None, num_predict: int = 2048):
         """
         串流生成文字 (逐字輸出)
 

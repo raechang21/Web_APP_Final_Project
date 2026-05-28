@@ -207,10 +207,11 @@ def chatbot_stream(
                 if chunk:
                     full += chunk
                     yield _sse({"chunk": chunk})
-            yield _sse({"done": True})
             chat_history.append({"role": "assistant", "content": full, "timestamp": _now_iso()})
             s["chat_messages"] = chat_history
+            chat_memory.save_conversation(db, user_name=user_name, messages=chat_history)
             _persist_memory(request, db)
+            yield _sse({"done": True})
         except Exception as e:
             yield _sse({"error": str(e)})
 

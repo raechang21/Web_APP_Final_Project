@@ -200,7 +200,7 @@ def deep_analysis_stream(request: Request) -> StreamingResponse:
                 "回應時請使用純文字，不要使用任何 Markdown 格式標記。"
             )
             for chunk in llm_client.generate_stream(
-                prompt, system_prompt=system_prompt, num_predict=2048
+                prompt, system_prompt=system_prompt, num_predict=4096
             ):
                 text = _clean_markdown(chunk)
                 if text:
