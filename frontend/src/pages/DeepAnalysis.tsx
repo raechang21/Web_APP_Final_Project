@@ -1,14 +1,34 @@
 import { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
-import { fetchDeepAnalysis, streamDeepAnalysis } from "@/api/results";
-import { Button } from "@/components/ui/button";
+import {
+  cacheDeepAnalysis,
+  fetchDeepAnalysis,
+  streamDeepAnalysis,
+} from "@/api/results";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageShell, SectionHero } from "@/components/layout/PageShell";
 import { useSessionStore } from "@/store/session";
+import type { DeepAnalysisResponse } from "@/types";
+
+function getAnalysisCacheKey(response: DeepAnalysisResponse) {
+  return `pp.deep-analysis:${JSON.stringify({
+    mbti: response.mbti,
+    bigfive_scores: response.bigfive_scores,
+    zodiac: response.zodiac,
+    dark_triad_scores: response.dark_triad_scores,
+  })}`;
+}
+
+function readCachedAnalysis(cacheKey: string) {
+  return window.localStorage.getItem(cacheKey) ?? "";
+}
+
+function writeCachedAnalysis(cacheKey: string, analysis: string) {
+  window.localStorage.setItem(cacheKey, analysis);
+}
 
 export default function DeepAnalysis() {
-  const navigate = useNavigate();
   const hasResults = useSessionStore((state) => state.has_results);
   const patchSession = useSessionStore((state) => state.patchSession);
   const [loading, setLoading] = useState(true);
@@ -18,17 +38,26 @@ export default function DeepAnalysis() {
 
   useEffect(() => {
     let active = true;
+    let analysisBuffer = "";
     fetchDeepAnalysis()
       .then(async (response) => {
         if (!active) {
           return;
         }
-        if (response.analysis.comprehensive) {
-          setAnalysis(response.analysis.comprehensive);
+        const cacheKey = getAnalysisCacheKey(response);
+        const cachedAnalysis =
+          response.analysis.comprehensive || readCachedAnalysis(cacheKey);
+
+        if (cachedAnalysis) {
+          analysisBuffer = cachedAnalysis;
+          setAnalysis(cachedAnalysis);
+          writeCachedAnalysis(cacheKey, cachedAnalysis);
           patchSession({ has_analysis: true });
           setLoading(false);
           return;
         }
+
+        setAnalysis("");
         setStreaming(true);
         setLoading(false);
         await streamDeepAnalysis((event) => {
@@ -40,12 +69,29 @@ export default function DeepAnalysis() {
             setStreaming(false);
             return;
           }
+          if (event.cached && event.analysis) {
+            analysisBuffer = event.analysis;
+            setAnalysis(event.analysis);
+          }
           if (event.chunk) {
-            setAnalysis((current) => current + event.chunk);
+            analysisBuffer += event.chunk;
+            setAnalysis(analysisBuffer);
           }
           if (event.done) {
-            patchSession({ has_analysis: true });
             setStreaming(false);
+            if (!analysisBuffer.trim()) {
+              return;
+            }
+
+            writeCachedAnalysis(cacheKey, analysisBuffer);
+            patchSession({ has_analysis: true });
+            void cacheDeepAnalysis(analysisBuffer).catch((err) => {
+              if (active) {
+                setError(
+                  err instanceof Error ? err.message : "分析快取保存失敗",
+                );
+              }
+            });
           }
         });
       })
