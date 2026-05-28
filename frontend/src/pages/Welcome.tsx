@@ -66,9 +66,9 @@ export default function Welcome() {
       if (!value) {
         throw new Error("請先輸入你的名字");
       }
-      await startSession(value);
+      const response = await startSession(value);
       await hydrate();
-      navigate("/mbti");
+      navigate(response.redirect);
     } catch (err) {
       setError(err instanceof Error ? err.message : "初始化 session 失敗");
     } finally {

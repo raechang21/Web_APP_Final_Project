@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 
-import {
-  cacheDeepAnalysis,
-  fetchDeepAnalysis,
-  streamDeepAnalysis,
-} from "@/api/results";
+import { fetchDeepAnalysis, streamDeepAnalysis } from "@/api/results";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageShell, SectionHero } from "@/components/layout/PageShell";
 import { useSessionStore } from "@/store/session";
@@ -84,13 +80,6 @@ export default function DeepAnalysis() {
 
             writeCachedAnalysis(cacheKey, analysisBuffer);
             patchSession({ has_analysis: true });
-            void cacheDeepAnalysis(analysisBuffer).catch((err) => {
-              if (active) {
-                setError(
-                  err instanceof Error ? err.message : "分析快取保存失敗",
-                );
-              }
-            });
           }
         });
       })

@@ -39,23 +39,12 @@ def _ensure_results(request: Request) -> tuple[str, dict, str, dict | None]:
 @router.get("/results")
 def get_results(request: Request) -> dict:
     mbti, bigfive, zodiac, dark_triad = _ensure_results(request)
-    s = request.session
-
-    if "analysis" not in s:
-        analysis = {
-            "mbti": PromptTemplates.get_mbti_template(mbti),
-            "bigfive": PromptTemplates.get_bigfive_template(bigfive),
-            "zodiac": PromptTemplates.get_zodiac_template(zodiac),
-            "dark_triad": (
-                PromptTemplates.get_dark_triad_template(dark_triad) if dark_triad else None
-            ),
-        }
-        analysis = {
-            "mbti": PromptTemplates.get_mbti_template(mbti),
-            "bigfive": PromptTemplates.get_bigfive_template(bigfive),
-            "zodiac": PromptTemplates.get_zodiac_template(zodiac),
-            "dark_triad": PromptTemplates.get_dark_triad_template(dark_triad) if dark_triad else None,
-        }
+    analysis = {
+        "mbti": PromptTemplates.get_mbti_template(mbti),
+        "bigfive": PromptTemplates.get_bigfive_template(bigfive),
+        "zodiac": PromptTemplates.get_zodiac_template(zodiac),
+        "dark_triad": PromptTemplates.get_dark_triad_template(dark_triad) if dark_triad else None,
+    }
 
     return {
         "mbti": mbti,
@@ -103,18 +92,18 @@ def bigfive_chart(request: Request) -> dict:
 
 
 @router.get("/deep-analysis")
-def deep_analysis(request: Request) -> dict:
+def deep_analysis(request: Request, db: Session = Depends(get_db)) -> dict:
     mbti, bigfive, zodiac, dark_triad = _ensure_results(request)
-    s = request.session
-    s["viewed_deep_analysis"] = True
-    analysis = s.get("analysis", {})
+    memory = user_repo.load_memory(db, request.session.get("user_name")) or {}
+    deep_analysis = memory.get("deep_analysis")
+    analysis = {"comprehensive": deep_analysis} if deep_analysis else {}
     return {
         "mbti": mbti,
         "bigfive_scores": bigfive,
         "zodiac": zodiac,
         "dark_triad_scores": dark_triad,
         "analysis": analysis,
-        "has_analysis": "comprehensive" in analysis,
+        "has_analysis": bool(deep_analysis),
     }
 
 

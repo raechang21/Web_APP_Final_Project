@@ -10,11 +10,12 @@ router = APIRouter(prefix="/api", tags=["session"])
 
 
 @router.get("/session", response_model=SessionOut)
-def get_session(request: Request) -> SessionOut:
+def get_session(request: Request, db: Session = Depends(get_db)) -> SessionOut:
     s = request.session
     bigfive_scores = s.get("bigfive_scores") or s.get("big_five_scores")
     has_results = bool(s.get("mbti") and bigfive_scores and s.get("zodiac"))
-    has_analysis = False
+    memory = user_repo.load_memory(db, s.get("user_name")) if s.get("user_name") else None
+    has_analysis = bool(memory and memory.get("deep_analysis"))
     return SessionOut(
         user_name=s.get("user_name"),
         mbti=s.get("mbti"),
@@ -43,6 +44,27 @@ def start_session(
     s["user_name"] = name
     s["quick_login"] = False
     s["welcome_message"] = f"嗨，{name}，歡迎你來這裡。今天想聊什麼呢？"
+    
+    memory = user_repo.load_memory(db, name)
+    if memory:
+        bigfive_scores = memory.get("bigfive_scores") or memory.get("big_five_scores")
+
+        if memory.get("mbti") and bigfive_scores and memory.get("zodiac"):
+            request.session.clear()
+            s = request.session
+            s["user_name"] = name
+            s["mbti"] = memory.get("mbti")
+            s["bigfive_scores"] = bigfive_scores
+            s["zodiac"] = memory.get("zodiac")
+            s["dark_triad_scores"] = memory.get("dark_triad_scores")
+            s["quick_login"] = True
+            s["welcome_message"] = f"嗨，{name}，歡迎回來！"
+
+            return {
+                "success": True,
+                "user_name": name,
+                "redirect": "/results",
+            }
     
     user_repo.reset_user_profile(
         db,
