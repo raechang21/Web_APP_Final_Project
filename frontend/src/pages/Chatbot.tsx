@@ -91,6 +91,24 @@ export default function Chatbot() {
 
     try {
       await streamChat(text, (event) => {
+        if (event.error_code) {
+          const fallbackMessage = event.message ?? "AI 服務暫時無法回應，請稍後再試。";
+
+          setMessages((current) => {
+            const copy = [...current];
+            const last = copy[copy.length - 1];
+            if (last?.role === "assistant") {
+              copy[copy.length - 1] = {
+                ...last,
+                content: fallbackMessage,
+              };
+            }
+            return copy;
+          });
+
+          setStreaming(false);
+          return;
+        }
         if (event.error) {
           setError(event.error);
           setStreaming(false);

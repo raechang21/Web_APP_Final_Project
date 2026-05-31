@@ -363,7 +363,7 @@ class PromptTemplates:
         """
         import json
         
-        template_path = DATA_DIR / "dark_triad_templates.json"
+        template_path = DATA_DIR / "dark_triad_templates_new.json"
         
         try:
             with open(template_path, 'r', encoding='utf-8') as f:
@@ -371,9 +371,9 @@ class PromptTemplates:
             
             # 判斷分數等級的函數
             def get_level(score):
-                if score <= 2.5:
+                if score <= 2.66:
                     return 'low'
-                elif score <= 4.5:
+                elif score <= 4.33:
                     return 'medium'
                 else:
                     return 'high'
@@ -444,7 +444,7 @@ class PromptTemplates:
         """
         import json
         
-        template_path = DATA_DIR / "bigfive_templates.json"
+        template_path = DATA_DIR / "bigfive_templates_new.json"
         
         try:
             with open(template_path, 'r', encoding='utf-8') as f:

@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..services import user_repo
 from ..services.llm.gemini_client import GeminiClient
+from ..services.llm.error_handling import classify_llm_error, DEFAULT_LLM_ERROR
 from ..services.llm.prompt_templates import PromptTemplates
 
 
@@ -187,22 +188,6 @@ def _clean_markdown(text: str) -> str:
     return text
 
 
-def _is_gemini_error_text(text: str) -> bool:
-    lowered = text.lower()
-    error_markers = (
-        "gemini api",
-        "gemini_api_key",
-        "getaddrinfo",
-        "errno",
-        "api key",
-        "permission",
-        "發生錯誤",
-        "錯誤",
-        "error",
-    )
-    return any(marker in lowered for marker in error_markers)
-
-
 @router.get("/deep-analysis/stream")
 def deep_analysis_stream(
     request: Request,
@@ -225,8 +210,12 @@ def deep_analysis_stream(
             ):
                 text = _clean_markdown(chunk)
                 if text:
-                    if _is_gemini_error_text(text):
+                    llm_error = classify_llm_error(text)
+                    if llm_error:
                         gemini_failed = True
+                        yield f"data: {json.dumps({'error_code': llm_error.code, 'message': llm_error.message}, ensure_ascii=False)}\n\n"
+                        return
+
                     full += text
                     yield f"data: {json.dumps({'chunk': text}, ensure_ascii=False)}\n\n"
 
@@ -242,7 +231,8 @@ def deep_analysis_stream(
                 )
             yield f"data: {json.dumps({'done': True})}\n\n"
         except Exception as e:
-            yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+            llm_error = classify_llm_error(str(e)) or DEFAULT_LLM_ERROR
+            yield f"data: {json.dumps({'error_code': llm_error.code, 'message': llm_error.message}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
         generate(),

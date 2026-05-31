@@ -11,6 +11,7 @@ from ..schemas.tests import ChatMessageIn
 from ..services import chat_memory
 from ..services.llm.chatbot_prompts import ChatBotPrompts
 from ..services.llm.gemini_client import GeminiClient
+from ..services.llm.error_handling import classify_llm_error, DEFAULT_LLM_ERROR
 from ..services.models.dark_triad_result import DarkTriadResult
 from ..services.models.test_result import (
     BigFiveResult,
@@ -205,9 +206,17 @@ def chatbot_stream(
         full = ""
         try:
             for chunk in llm_client.generate_stream(formatted, system_prompt):
-                if chunk:
-                    full += chunk
-                    yield _sse({"chunk": chunk})
+                if not chunk:
+                    continue
+
+                llm_error = classify_llm_error(chunk)
+                if llm_error:
+                    yield _sse({"error_code": llm_error.code, "message": llm_error.message})
+                    yield _sse({"done": True})
+                    return
+
+                full += chunk
+                yield _sse({"chunk": chunk})
             turn_messages = [
                 user_entry,
                 {"role": "assistant", "content": full, "timestamp": _now_iso()},
@@ -216,8 +225,10 @@ def chatbot_stream(
             _persist_memory_with_messages(request, db, turn_messages)
             yield _sse({"done": True})
         except Exception as e:
-            yield _sse({"error": str(e)})
-
+            llm_error = classify_llm_error(str(e)) or DEFAULT_LLM_ERROR
+            yield _sse({"error_code": llm_error.code, "message": llm_error.message})
+            yield _sse({"done": True})
+    
     return StreamingResponse(
         gen_llm(),
         media_type="text/event-stream",

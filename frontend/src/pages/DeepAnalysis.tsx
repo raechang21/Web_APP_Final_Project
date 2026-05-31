@@ -61,6 +61,12 @@ export default function DeepAnalysis() {
           if (!active) {
             return;
           }
+          if (event.error_code) {
+            const fallbackMessage = event.message ?? "AI 分析暫時無法完成，請稍後再試一次。";
+            setAnalysis(fallbackMessage);
+            setStreaming(false);
+            return;
+          }
           if (event.error) {
             setError(event.error);
             setStreaming(false);

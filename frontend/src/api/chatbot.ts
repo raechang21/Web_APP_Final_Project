@@ -4,7 +4,13 @@ import { apiRequest, streamSse } from "./client";
 
 export function streamChat(
   message: string,
-  onEvent: (event: { chunk?: string; done?: boolean; error?: string }) => void,
+  onEvent: (event: {
+  chunk?: string;
+  done?: boolean;
+  error?: string;
+  error_code?: string;
+  message?: string;
+}) => void,
 ) {
   return streamSse("/api/chatbot/stream", {
     method: "POST",

@@ -21,12 +21,14 @@ export function fetchDeepAnalysis() {
 
 export function streamDeepAnalysis(
   onEvent: (event: {
-    chunk?: string;
-    done?: boolean;
-    error?: string;
-    cached?: boolean;
-    analysis?: string;
-  }) => void,
+  chunk?: string;
+  done?: boolean;
+  error?: string;
+  error_code?: string;
+  message?: string;
+  cached?: boolean;
+  analysis?: string;
+}) => void,
 ) {
   return streamSse("/api/deep-analysis/stream", { method: "GET" }, onEvent);
 }
