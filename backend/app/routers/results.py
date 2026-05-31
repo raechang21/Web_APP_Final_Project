@@ -27,19 +27,26 @@ def _interpret(score: float) -> str:
     return "極高"
 
 
-def _ensure_results(request: Request) -> tuple[str, dict, str, dict | None]:
+def _ensure_results(request: Request, db: Session) -> tuple[str, dict, str, dict | None]:
     s = request.session
-    mbti = s.get("mbti")
-    bigfive = s.get("bigfive_scores")
-    zodiac = s.get("zodiac")
+    user_name = s.get("user_name")
+    memory = user_repo.load_memory(db, user_name) if user_name else None
+    mbti = s.get("mbti") or (memory or {}).get("mbti")
+    bigfive = (
+        s.get("bigfive_scores")
+        or (memory or {}).get("bigfive_scores")
+        or (memory or {}).get("big_five_scores")
+    )
+    zodiac = s.get("zodiac") or (memory or {}).get("zodiac")
+    dark_triad = s.get("dark_triad_scores") or (memory or {}).get("dark_triad_scores")
     if not (mbti and bigfive and zodiac):
         raise HTTPException(400, "缺少測驗資料，請先完成所有測驗")
-    return mbti, bigfive, zodiac, s.get("dark_triad_scores")
+    return mbti, bigfive, zodiac, dark_triad
 
 
 @router.get("/results")
-def get_results(request: Request) -> dict:
-    mbti, bigfive, zodiac, dark_triad = _ensure_results(request)
+def get_results(request: Request, db: Session = Depends(get_db)) -> dict:
+    mbti, bigfive, zodiac, dark_triad = _ensure_results(request, db)
     analysis = {
         "mbti": PromptTemplates.get_mbti_template(mbti),
         "bigfive": PromptTemplates.get_bigfive_template(bigfive),
@@ -94,7 +101,7 @@ def bigfive_chart(request: Request) -> dict:
 
 @router.get("/deep-analysis")
 def deep_analysis(request: Request, db: Session = Depends(get_db)) -> dict:
-    mbti, bigfive, zodiac, dark_triad = _ensure_results(request)
+    mbti, bigfive, zodiac, dark_triad = _ensure_results(request, db)
     memory = user_repo.load_memory(db, request.session.get("user_name")) or {}
     deep_analysis = memory.get("deep_analysis")
     analysis = {"comprehensive": deep_analysis} if deep_analysis else {}
@@ -193,7 +200,7 @@ def deep_analysis_stream(
     request: Request,
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
-    mbti, bigfive, zodiac, dark_triad = _ensure_results(request)
+    mbti, bigfive, zodiac, dark_triad = _ensure_results(request, db)
     prompt = _build_comprehensive_prompt(mbti, bigfive, zodiac, dark_triad)
     user_name = request.session.get("user_name")
 

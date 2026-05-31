@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     FRONTEND_ORIGIN: str = "http://localhost:5173"
     DATABASE_URL: str = f"sqlite:///{BACKEND_ROOT / 'personality_paradox.db'}"
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_MODEL: str = "gemini-3.1-flash-lite"
     GEMINI_TIMEOUT: int = 60
     SESSION_MAX_AGE: int = 60 * 60 * 2  # 2 hours
 
