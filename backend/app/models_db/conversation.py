@@ -36,6 +36,7 @@ class Message(Base):
     )
     role: Mapped[str] = mapped_column(String)  # user / assistant / system
     content: Mapped[str] = mapped_column(Text)
+    scope: Mapped[str] = mapped_column(String, default="in_scope")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     conversation: Mapped[Conversation] = relationship(back_populates="messages")

@@ -35,10 +35,15 @@ def _migrate_sqlite_schema() -> None:
         return
 
     inspector = inspect(engine)
-    if "users" not in inspector.get_table_names():
-        return
+    table_names = inspector.get_table_names()
 
-    user_columns = {column["name"] for column in inspector.get_columns("users")}
-    with engine.begin() as conn:
-        if "deep_analysis" not in user_columns:
-            conn.execute(text("ALTER TABLE users ADD COLUMN deep_analysis VARCHAR"))
+    with engine.begin() as conn: 
+        if "users" in table_names:
+            user_columns = {column["name"] for column in inspector.get_columns("users")}
+            if "deep_analysis" not in user_columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN deep_analysis VARCHAR"))
+
+        if "messages" in table_names:
+            message_columns = {column["name"] for column in inspector.get_columns("messages")}
+            if "scope" not in message_columns:
+                conn.execute(text("ALTER TABLE messages ADD COLUMN scope VARCHAR DEFAULT 'in_scope'"))

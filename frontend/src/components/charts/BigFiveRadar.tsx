@@ -16,9 +16,10 @@ export function BigFiveRadar({ figure }: { figure: PlotlyFigure }) {
             plot_bgcolor: "transparent",
             font: { family: "Noto Sans TC, sans-serif", color: "#37352f" },
             margin: { l: 40, r: 40, t: 48, b: 24 },
+            dragmode: false,
             ...figure.layout,
           } as never}
-          config={{ displayModeBar: false, responsive: true }}
+          config={{ displayModeBar: false, responsive: true, staticPlot: true }}
           style={{ width: "100%", height: "100%" }}
         />
       </Suspense>

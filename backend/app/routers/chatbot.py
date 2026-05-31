@@ -113,7 +113,11 @@ def chatbot_stream(
 
     s = request.session
     user_name = s.get("user_name")
-    chat_history = chat_memory.latest_conversation_messages(db, user_name) if user_name else []
+    chat_history = (
+        chat_memory.recent_prompt_context_messages(db, user_name, limit=6)
+        if user_name
+        else []
+    )
 
     # First message → treat as user name; check DB for returning user.
     if not user_name and not chat_history:
@@ -145,11 +149,41 @@ def chatbot_stream(
             return StreamingResponse(gen_back(), media_type="text/event-stream")
 
         s["user_name"] = potential_name
-        welcome = f"嗨，{potential_name}，歡迎你來這裡。今天想聊什麼呢？"
+
+        first_reply_prompt = ChatBotPrompts.first_reply_after_name()
+        formatted = f"使用者的名字是：{potential_name}\n請產生第一次打招呼的回覆。"
 
         def gen_new():
-            yield _sse({"chunk": welcome})
-            yield _sse({"done": True})
+            full = ""
+            try:
+                for chunk in llm_client.generate_stream(
+                    formatted,
+                    system_prompt=first_reply_prompt,
+                    num_predict=256,
+                ):
+                    if chunk:
+                        full += chunk
+                        yield _sse({"chunk": chunk})
+
+                # optional: save assistant welcome message to DB
+                welcome_messages = [
+                    {
+                        "role": "assistant",
+                        "content": full,
+                        "timestamp": _now_iso(),
+                        "scope": "in_scope",
+                    }
+                ]
+                chat_memory.save_conversation(
+                    db,
+                    user_name=potential_name,
+                    messages=welcome_messages,
+                )
+
+                yield _sse({"done": True})
+            except Exception as e:
+                yield _sse({"error": str(e)})
+                yield _sse({"done": True})
 
         return StreamingResponse(gen_new(), media_type="text/event-stream")
 
@@ -173,20 +207,28 @@ def chatbot_stream(
     dark_triad_result = (
         DarkTriadResult(**dark_triad_scores) if dark_triad_scores else None
     )
+    
+    message_scope = llm_client.classify_scope_with_ai(user_message)
 
-    system_prompt = ChatBotPrompts.system_prompt_with_results(
-        mbti=mbti_result,
-        bigfive=bigfive_result,
-        zodiac=zodiac_result,
-        dark_triad=dark_triad_result,
-    )
+    if message_scope == "followup" and not chat_history:
+        message_scope = "out_of_scope"
 
     # Score query short-circuit (no LLM call).
     if _is_score_query(user_message):
         direct = _score_response(user_message, bigfive_result)
         turn_messages = [
-            {"role": "user", "content": user_message, "timestamp": _now_iso()},
-            {"role": "assistant", "content": direct, "timestamp": _now_iso()},
+            {
+                "role": "user",
+                "content": user_message,
+                "timestamp": _now_iso(),
+                "scope": "in_scope",
+            },
+            {
+                "role": "assistant",
+                "content": direct,
+                "timestamp": _now_iso(),
+                "scope": "in_scope",
+            },
         ]
         chat_memory.save_conversation(db, user_name=user_name, messages=turn_messages)
         _persist_memory_with_messages(request, db, turn_messages)
@@ -199,8 +241,32 @@ def chatbot_stream(
 
     # Trim history to last 6 messages.
     recent_history = chat_history[-6:]
-    formatted = ChatBotPrompts.format_user_message(user_message, recent_history)
-    user_entry = {"role": "user", "content": user_message, "timestamp": _now_iso()}
+
+    if message_scope == "out_of_scope":
+        formatted = user_message
+        system_prompt = ChatBotPrompts.out_of_scope_system_prompt()
+    else:
+        formatted = ChatBotPrompts.format_user_message(user_message, recent_history)
+        system_prompt = ChatBotPrompts.system_prompt_with_results(
+            mbti=mbti_result,
+            bigfive=bigfive_result,
+            zodiac=zodiac_result,
+            dark_triad=dark_triad_result,
+        )
+
+    user_entry = {
+        "role": "user",
+        "content": user_message,
+        "timestamp": _now_iso(),
+        "scope": message_scope,
+    }
+    
+    conversation = chat_memory.create_conversation_with_message(
+        db,
+        user_name=user_name,
+        message=user_entry,
+    )
+    conversation_id = conversation.id if conversation else None
 
     def gen_llm():
         full = ""
@@ -211,21 +277,57 @@ def chatbot_stream(
 
                 llm_error = classify_llm_error(chunk)
                 if llm_error:
+                    error_entry = {
+                        "role": "assistant",
+                        "content": llm_error.message,
+                        "timestamp": _now_iso(),
+                        "scope": message_scope,
+                    }
+
+                    if conversation_id:
+                        chat_memory.append_message_to_conversation(
+                            db,
+                            conversation_id=conversation_id,
+                            message=error_entry,
+                        )
+
                     yield _sse({"error_code": llm_error.code, "message": llm_error.message})
                     yield _sse({"done": True})
                     return
 
                 full += chunk
                 yield _sse({"chunk": chunk})
-            turn_messages = [
-                user_entry,
-                {"role": "assistant", "content": full, "timestamp": _now_iso()},
-            ]
-            chat_memory.save_conversation(db, user_name=user_name, messages=turn_messages)
-            _persist_memory_with_messages(request, db, turn_messages)
+            assistant_entry = {
+                "role": "assistant",
+                "content": full,
+                "timestamp": _now_iso(),
+                "scope": message_scope,
+            }
+            if conversation_id:
+                chat_memory.append_message_to_conversation(
+                    db,
+                    conversation_id=conversation_id,
+                    message=assistant_entry,
+                )
+            _persist_memory_with_messages(request, db, [user_entry, assistant_entry])
             yield _sse({"done": True})
         except Exception as e:
             llm_error = classify_llm_error(str(e)) or DEFAULT_LLM_ERROR
+
+            error_entry = {
+                "role": "assistant",
+                "content": llm_error.message,
+                "timestamp": _now_iso(),
+                "scope": message_scope,
+            }
+
+            if conversation_id:
+                chat_memory.append_message_to_conversation(
+                    db,
+                    conversation_id=conversation_id,
+                    message=error_entry,
+                )
+
             yield _sse({"error_code": llm_error.code, "message": llm_error.message})
             yield _sse({"done": True})
     

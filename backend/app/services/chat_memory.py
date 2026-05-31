@@ -56,7 +56,11 @@ def save_chat_memory(
     key_topics = [
         m["content"]
         for m in chat_messages
-        if m.get("role") == "user" and len(m.get("content", "")) > 5
+        if (
+            m.get("role") == "user"
+            and m.get("scope") in ["in_scope", "followup"]
+            and len(m.get("content", "")) > 5
+        )
     ]
 
     summaries = list(existing.get("conversation_summaries", []))
@@ -111,6 +115,7 @@ def save_conversation(
                 conversation_id=conv.id,
                 role=m.get("role", "user"),
                 content=m.get("content", ""),
+                scope=m.get("scope", "in_scope"),
                 created_at=created,
             )
         )
@@ -155,6 +160,7 @@ def latest_conversation_messages(db: Session, user_name: str) -> list[dict]:
             "role": message.role,
             "content": message.content,
             "timestamp": message.created_at.isoformat() if message.created_at else None,
+            "scope": message.scope,
         }
         for message in conv.messages
     ]
@@ -184,3 +190,93 @@ def delete_all_conversations(db: Session, *, user_name: str) -> int:
         db.delete(c)
     db.commit()
     return count
+
+def recent_prompt_context_messages(
+    db: Session,
+    user_name: str,
+    limit: int = 12,
+) -> list[dict]:
+    rows = (
+        db.query(Message)
+        .join(Conversation)
+        .filter(Conversation.user_name == user_name)
+        .filter(Message.scope.in_(["in_scope", "followup"]))
+        .order_by(Message.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    rows = list(reversed(rows))
+
+    return [
+        {
+            "role": m.role,
+            "content": m.content,
+            "timestamp": m.created_at.isoformat() if m.created_at else None,
+            "scope": m.scope,
+        }
+        for m in rows
+    ]
+    
+def create_conversation_with_message(
+    db: Session,
+    *,
+    user_name: str,
+    message: dict,
+) -> Conversation | None:
+    if not user_name or not message:
+        return None
+
+    upsert_user(db, user_name=user_name)
+
+    conv = Conversation(user_name=user_name, started_at=datetime.now(timezone.utc))
+    db.add(conv)
+    db.flush()
+
+    ts = message.get("timestamp")
+    try:
+        created = datetime.fromisoformat(ts) if ts else datetime.now(timezone.utc)
+    except ValueError:
+        created = datetime.now(timezone.utc)
+
+    db.add(
+        Message(
+            conversation_id=conv.id,
+            role=message.get("role", "user"),
+            content=message.get("content", ""),
+            scope=message.get("scope", "in_scope"),
+            created_at=created,
+        )
+    )
+
+    db.commit()
+    return conv
+
+def append_message_to_conversation(
+    db: Session,
+    *,
+    conversation_id: int,
+    message: dict,
+) -> None:
+    conv = db.get(Conversation, conversation_id)
+    if not conv:
+        return
+
+    ts = message.get("timestamp")
+    try:
+        created = datetime.fromisoformat(ts) if ts else datetime.now(timezone.utc)
+    except ValueError:
+        created = datetime.now(timezone.utc)
+
+    db.add(
+        Message(
+            conversation_id=conversation_id,
+            role=message.get("role", "assistant"),
+            content=message.get("content", ""),
+            scope=message.get("scope", "in_scope"),
+            created_at=created,
+        )
+    )
+
+    conv.ended_at = datetime.now(timezone.utc)
+    db.commit()
