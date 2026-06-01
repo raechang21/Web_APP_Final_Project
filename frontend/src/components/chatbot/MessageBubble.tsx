@@ -8,8 +8,12 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
   return (
     <div className={cn("flex gap-3", assistant ? "justify-start" : "justify-end")}>
       {assistant ? (
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-ink text-paper">
-          ✦
+        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
+          <img
+            src="/assistant-avatar.png"
+            alt="AI 諮商助手"
+            className="h-full w-full object-cover"
+          />
         </div>
       ) : null}
       <div
@@ -28,7 +32,7 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
         ) : null}
       </div>
       {!assistant ? (
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-coral text-white">
+       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-coral text-white">
           你
         </div>
       ) : null}

@@ -27,13 +27,13 @@ export default function DarkTriadIntro() {
       <FlowSteps />
       <SectionHero
         eyebrow="Step 04"
-        title="黑暗三角人格（Dark Triad）"
-        description="黑暗三角（Dark Triad）是心理學中用來描述三種人格特質概念，本測驗題目參考張益慈、詹雨臻、陳學志（2021）。"
+        title="黑暗三角"
+        description="黑暗三角是心理學中用來描述三種人格特質概念，本測驗題目參考張益慈、詹雨臻、陳學志（2021）。"
       />
 
       <Card>
         <CardContent className="space-y-5">
-          <h2 className="font-display text-3xl text-ink">什麼是 Dark Triad ?</h2>
+          <h2 className="font-display text-3xl text-ink">什麼是黑暗三角?</h2>
           <p className="text-sm leading-8 text-stone-600">
             聚焦於三種常被誤解的人格傾向：策略性、自我關注，以及規範與衝動控制。理解這些維度，有助於辨識自己在壓力、競爭與人際互動中的反應習慣。
           </p>
@@ -47,7 +47,7 @@ export default function DarkTriadIntro() {
               <p className="mt-2 text-sm leading-7 text-stone-600">如何看待自己的重要性、獨特性、對肯定與關注的需求。</p>
             </div>
             <div className="rounded-3xl bg-stone-200/70 p-5">
-              <h3 className="font-medium text-ink">病態人格特質</h3>
+              <h3 className="font-medium text-ink">病態人格</h3>
               <p className="mt-2 text-sm leading-7 text-stone-600">在衝動、規範、風險與人際衝突上的反應傾向。</p>
             </div>
           </div>
