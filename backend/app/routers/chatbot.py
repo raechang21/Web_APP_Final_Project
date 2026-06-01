@@ -101,6 +101,24 @@ def _sse(payload: dict) -> str:
     return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
 
+def _resolve_conversation_id(
+    db: Session,
+    *,
+    user_name: str,
+    requested_id: int | None,
+) -> int | None:
+    if requested_id is None:
+        return None
+    conversation = chat_memory.get_conversation(
+        db,
+        user_name=user_name,
+        conversation_id=requested_id,
+    )
+    if not conversation:
+        raise HTTPException(404, "找不到該對話")
+    return conversation.id
+
+
 @router.post("/stream")
 def chatbot_stream(
     payload: ChatMessageIn,
@@ -113,9 +131,23 @@ def chatbot_stream(
 
     s = request.session
     user_name = s.get("user_name")
+    active_conversation_id = (
+        _resolve_conversation_id(
+            db,
+            user_name=user_name,
+            requested_id=payload.conversation_id,
+        )
+        if user_name and payload.conversation_id is not None
+        else None
+    )
     chat_history = (
-        chat_memory.recent_prompt_context_messages(db, user_name, limit=6)
-        if user_name
+        chat_memory.recent_prompt_context_messages(
+            db,
+            user_name,
+            limit=6,
+            conversation_id=active_conversation_id,
+        )
+        if user_name and active_conversation_id is not None
         else []
     )
 
@@ -143,6 +175,7 @@ def chatbot_stream(
                 welcome += " 今天想聊什麼呢？"
 
             def gen_back():
+                yield _sse({"conversation_id": None})
                 yield _sse({"chunk": welcome})
                 yield _sse({"done": True})
 
@@ -180,6 +213,8 @@ def chatbot_stream(
                     messages=welcome_messages,
                 )
 
+                latest = chat_memory.latest_conversation(db, potential_name)
+                yield _sse({"conversation_id": latest.id if latest else None})
                 yield _sse({"done": True})
             except Exception as e:
                 yield _sse({"error": str(e)})
@@ -216,24 +251,41 @@ def chatbot_stream(
     # Score query short-circuit (no LLM call).
     if _is_score_query(user_message):
         direct = _score_response(user_message, bigfive_result)
-        turn_messages = [
-            {
-                "role": "user",
-                "content": user_message,
-                "timestamp": _now_iso(),
-                "scope": "in_scope",
-            },
-            {
-                "role": "assistant",
-                "content": direct,
-                "timestamp": _now_iso(),
-                "scope": "in_scope",
-            },
-        ]
-        chat_memory.save_conversation(db, user_name=user_name, messages=turn_messages)
-        _persist_memory_with_messages(request, db, turn_messages)
+        user_entry = {
+            "role": "user",
+            "content": user_message,
+            "timestamp": _now_iso(),
+            "scope": "in_scope",
+        }
+        assistant_entry = {
+            "role": "assistant",
+            "content": direct,
+            "timestamp": _now_iso(),
+            "scope": "in_scope",
+        }
+        if active_conversation_id:
+            chat_memory.append_message_to_conversation(
+                db,
+                conversation_id=active_conversation_id,
+                message=user_entry,
+            )
+        else:
+            conversation = chat_memory.create_conversation_with_message(
+                db,
+                user_name=user_name,
+                message=user_entry,
+            )
+            active_conversation_id = conversation.id if conversation else None
+        if active_conversation_id:
+            chat_memory.append_message_to_conversation(
+                db,
+                conversation_id=active_conversation_id,
+                message=assistant_entry,
+            )
+        _persist_memory_with_messages(request, db, [user_entry, assistant_entry])
 
         def gen_direct():
+            yield _sse({"conversation_id": active_conversation_id})
             yield _sse({"chunk": direct})
             yield _sse({"done": True})
 
@@ -261,16 +313,25 @@ def chatbot_stream(
         "scope": message_scope,
     }
     
-    conversation = chat_memory.create_conversation_with_message(
-        db,
-        user_name=user_name,
-        message=user_entry,
-    )
-    conversation_id = conversation.id if conversation else None
+    if active_conversation_id:
+        chat_memory.append_message_to_conversation(
+            db,
+            conversation_id=active_conversation_id,
+            message=user_entry,
+        )
+        conversation_id = active_conversation_id
+    else:
+        conversation = chat_memory.create_conversation_with_message(
+            db,
+            user_name=user_name,
+            message=user_entry,
+        )
+        conversation_id = conversation.id if conversation else None
 
     def gen_llm():
         full = ""
         try:
+            yield _sse({"conversation_id": conversation_id})
             for chunk in llm_client.generate_stream(formatted, system_prompt):
                 if not chunk:
                     continue
@@ -356,8 +417,12 @@ def chatbot_save(request: Request, db: Session = Depends(get_db)) -> dict:
 def chatbot_history(request: Request, db: Session = Depends(get_db)) -> dict:
     user_name = request.session.get("user_name")
     if not user_name:
-        return {"messages": []}
-    return {"messages": chat_memory.latest_conversation_messages(db, user_name)}
+        return {"conversation_id": None, "messages": []}
+    conversation = chat_memory.latest_conversation(db, user_name)
+    return {
+        "conversation_id": conversation.id if conversation else None,
+        "messages": chat_memory.latest_conversation_messages(db, user_name),
+    }
 
 
 @router.get("/history/all")
@@ -369,6 +434,27 @@ def chatbot_history_all(request: Request, db: Session = Depends(get_db)) -> dict
         "user_name": user_name,
         "histories": chat_memory.list_conversations(db, user_name),
     }
+
+
+@router.get("/history/conversation/{conversation_id}")
+def chatbot_history_by_conversation(
+    conversation_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> dict:
+    user_name = request.session.get("user_name")
+    if not user_name:
+        raise HTTPException(400, "尚未取得使用者名稱")
+
+    messages = chat_memory.conversation_messages(
+        db,
+        user_name=user_name,
+        conversation_id=conversation_id,
+    )
+    if messages is None:
+        raise HTTPException(404, "找不到該對話")
+
+    return {"conversation_id": conversation_id, "messages": messages}
 
 
 @router.delete("/history/all")

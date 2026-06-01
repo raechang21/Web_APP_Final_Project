@@ -1,31 +1,46 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 
 import {
-  clearChatHistory,
   deleteAllHistories,
   deleteHistory,
   fetchAllHistories,
   fetchChatHistory,
-  saveChatHistory,
   streamChat,
 } from "@/api/chatbot";
 import { MessageList } from "@/components/chatbot/MessageList";
 import { QuickQuestions } from "@/components/chatbot/QuickQuestions";
 import { SidebarSummary } from "@/components/chatbot/SidebarSummary";
 import { PageShell, SectionHero } from "@/components/layout/PageShell";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import newChatIcon from "@/assets/icons/new-chat.svg";
 import { CHATBOT_PROMPTS } from "@/lib/personality";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { useSessionStore } from "@/store/session";
-import type { ChatMessage, ConversationSummary } from "@/types";
+import type {
+  ChatMessage,
+  ConversationHistoryResponse,
+  ConversationSummary,
+} from "@/types";
+
+function seedWelcomeMessage(welcomeMessage: string | null): ChatMessage[] {
+  if (!welcomeMessage) {
+    return [];
+  }
+  return [
+    {
+      role: "assistant",
+      content: welcomeMessage,
+    },
+  ];
+}
 
 export default function Chatbot() {
   const session = useSessionStore((state) => state);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [histories, setHistories] = useState<ConversationSummary[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,15 +54,11 @@ export default function Chatbot() {
           return;
         }
         const seeded =
-          historyResponse.messages.length === 0 && session.welcome_message
-            ? [
-                {
-                  role: "assistant" as const,
-                  content: session.welcome_message,
-                },
-              ]
+          historyResponse.messages.length === 0 && historyResponse.conversation_id == null
+            ? seedWelcomeMessage(session.welcome_message)
             : historyResponse.messages;
         setMessages(seeded);
+        setActiveConversationId(historyResponse.conversation_id);
         setHistories(allResponse.histories);
       })
       .catch((err) => {
@@ -64,10 +75,46 @@ export default function Chatbot() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const promptList = useMemo(() => CHATBOT_PROMPTS, []);
-
   if (!session.has_results && !session.is_quick_login) {
     return <Navigate to="/" replace />;
+  }
+
+  async function refreshHistories() {
+    const response = await fetchAllHistories();
+    setHistories(response.histories);
+    return response.histories;
+  }
+
+  function applyHistoryResponse(historyResponse: ConversationHistoryResponse) {
+    const nextMessages =
+      historyResponse.messages.length === 0 && historyResponse.conversation_id == null
+        ? seedWelcomeMessage(session.welcome_message)
+        : historyResponse.messages;
+    setMessages(nextMessages);
+    setActiveConversationId(historyResponse.conversation_id);
+  }
+
+  async function handleSelectHistory(conversationId: number) {
+    if (streaming) {
+      return;
+    }
+    try {
+      setError(null);
+      const response = await fetchChatHistory(conversationId);
+      applyHistoryResponse(response);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "聊天記錄載入失敗");
+    }
+  }
+
+  function handleNewConversation() {
+    if (streaming) {
+      return;
+    }
+    setError(null);
+    setInput("");
+    setMessages([]);
+    setActiveConversationId(null);
   }
 
   async function handleSend(prefilled?: string) {
@@ -76,10 +123,7 @@ export default function Chatbot() {
       return;
     }
 
-    setError(null);
-    setStreaming(true);
-    setInput("");
-
+    const currentConversationId = activeConversationId;
     const userMessage: ChatMessage = {
       role: "user",
       content: text,
@@ -87,10 +131,16 @@ export default function Chatbot() {
     };
     const assistantMessage: ChatMessage = { role: "assistant", content: "" };
 
+    setError(null);
+    setStreaming(true);
+    setInput("");
     setMessages((current) => [...current, userMessage, assistantMessage]);
 
     try {
-      await streamChat(text, (event) => {
+      await streamChat(text, currentConversationId, (event) => {
+        if (event.conversation_id !== undefined) {
+          setActiveConversationId(event.conversation_id ?? null);
+        }
         if (event.error_code) {
           const fallbackMessage = event.message ?? "AI 服務暫時無法回應，請稍後再試。";
 
@@ -107,6 +157,7 @@ export default function Chatbot() {
           });
 
           setStreaming(false);
+          void refreshHistories();
           return;
         }
         if (event.error) {
@@ -129,7 +180,7 @@ export default function Chatbot() {
         }
         if (event.done) {
           setStreaming(false);
-          fetchAllHistories().then((response) => setHistories(response.histories)).catch(() => null);
+          void refreshHistories();
         }
       });
     } catch (err) {
@@ -138,37 +189,47 @@ export default function Chatbot() {
     }
   }
 
-  async function handleClear() {
-    await clearChatHistory();
-    setMessages([]);
-  }
+  async function handleDeleteHistory(conversationId: number) {
+    if (!confirm("確定刪除這筆對話記錄嗎？")) {
+      return;
+    }
 
-  async function handleSave() {
-    await saveChatHistory();
-    const response = await fetchAllHistories();
-    setHistories(response.histories);
-  }
+    const deletingActiveConversation = conversationId === activeConversationId;
 
-  async function handleDeleteHistory(id: number) {
-    if (!confirm("確定刪除這筆對話記錄嗎？")) return;
     try {
-      await deleteHistory(id);
-      setHistories((current) => current.filter((h) => h.id !== id));
+      setError(null);
+      await deleteHistory(conversationId);
+      const remainingHistories = await refreshHistories();
+
+      if (!deletingActiveConversation) {
+        return;
+      }
+
+      const nextConversation = remainingHistories[0];
+      if (nextConversation) {
+        const response = await fetchChatHistory(nextConversation.id);
+        applyHistoryResponse(response);
+      } else {
+        applyHistoryResponse({ conversation_id: null, messages: [] });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "刪除失敗");
     }
   }
-  
+
   async function handleClearAllHistories() {
-    if (!confirm(`確定要清除全部 ${histories.length} 筆對話記錄嗎？\n此動作無法復原。`)) return;
+    if (!confirm(`確定要清除全部 ${histories.length} 筆對話記錄嗎？\n此動作無法復原。`)) {
+      return;
+    }
     try {
+      setError(null);
       await deleteAllHistories();
       setHistories([]);
+      applyHistoryResponse({ conversation_id: null, messages: [] });
     } catch (err) {
       setError(err instanceof Error ? err.message : "清除失敗");
     }
   }
-
 
   return (
     <PageShell className="space-y-8">
@@ -186,8 +247,24 @@ export default function Chatbot() {
             <div className="border-b border-stone-200 px-6 py-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h2 className="font-display text-3xl text-ink">聊天室 (2)</h2>
+                  <h2 className="font-display text-3xl text-ink">聊天室</h2>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleNewConversation}
+                  disabled={streaming}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label="新增對話"
+                  title="新增對話"
+                >
+                  <img
+                    src={newChatIcon}
+                    alt=""
+                    aria-hidden="true"
+                    className="object-contain opacity-80"
+                    style={{ height: "20px", width: "20px" }}
+                  />
+                </button>
               </div>
             </div>
 
@@ -206,15 +283,20 @@ export default function Chatbot() {
                   onKeyDown={(event) => {
                     if (event.key === "Enter" && !event.shiftKey) {
                       event.preventDefault();
-                      handleSend();
+                      void handleSend();
                     }
                   }}
                   placeholder="直接問：我的性格在關係裡常怎麼反應？"
                 />
                 <div className="flex justify-end">
-                  <Button onClick={() => handleSend()} disabled={streaming || !input.trim()}>
+                  <button
+                    type="button"
+                    onClick={() => void handleSend()}
+                    disabled={streaming || !input.trim()}
+                    className="inline-flex items-center justify-center rounded-2xl bg-ink px-4 py-3 text-sm font-medium text-paper transition hover:-translate-y-0.5 hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
                     {streaming ? "串流中..." : "送出"}
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div>
@@ -225,7 +307,7 @@ export default function Chatbot() {
           <Card>
             <CardContent className="space-y-4">
               <h3 className="font-display text-2xl text-ink">Quick Questions</h3>
-              <QuickQuestions prompts={promptList} onSelect={(prompt) => handleSend(prompt)} />
+              <QuickQuestions prompts={CHATBOT_PROMPTS} onSelect={(prompt) => void handleSend(prompt)} />
             </CardContent>
           </Card>
           <Card>
@@ -235,8 +317,9 @@ export default function Chatbot() {
                 {histories.length > 0 ? (
                   <button
                     type="button"
-                    onClick={handleClearAllHistories}
-                    className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs text-stone-500 transition hover:bg-red-50 hover:text-red-600"
+                    onClick={() => void handleClearAllHistories()}
+                    disabled={streaming}
+                    className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs text-stone-500 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                     aria-label="清除全部記錄"
                   >
                     <span>🗑️</span>
@@ -248,24 +331,45 @@ export default function Chatbot() {
                 {histories.length === 0 ? (
                   <p className="text-sm text-stone-500">目前沒有保存過的對話。</p>
                 ) : (
-                  histories.map((history) => (
-                    <div key={history.id} className="group relative">
-                      <div className="rounded-2xl bg-stone-50 p-4 transition-all duration-300 group-hover:bg-stone-100 group-hover:pr-14">
-                        <p className="text-sm font-medium text-ink">{history.preview || "空白對話"}</p>
-                        <p className="mt-1 text-xs text-stone-500">
-                          {formatDate(history.timestamp)} · {history.message_count} 則訊息
-                        </p>
+                  histories.map((history) => {
+                    const active = history.id === activeConversationId;
+
+                    return (
+                      <div key={history.id} className="group relative">
+                        <button
+                          type="button"
+                          onClick={() => void handleSelectHistory(history.id)}
+                          disabled={streaming}
+                          className={cn(
+                            "w-full rounded-2xl p-4 pr-14 text-left transition-all duration-300",
+                            active
+                              ? "bg-stone-100 ring-1 ring-stone-300"
+                              : "bg-stone-50 hover:bg-stone-100",
+                            streaming && "cursor-not-allowed opacity-60",
+                          )}
+                        >
+                          <p className="text-sm font-medium text-ink">
+                            {history.preview || "空白對話"}
+                          </p>
+                          <p className="mt-1 text-xs text-stone-500">
+                            {formatDate(history.timestamp)} · {history.message_count} 則訊息
+                          </p>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void handleDeleteHistory(history.id);
+                          }}
+                          disabled={streaming}
+                          className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-stone-400 opacity-0 transition-all duration-300 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label="刪除這筆對話"
+                        >
+                          🗑️
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteHistory(history.id)}
-                        className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 scale-75 items-center justify-center rounded-full text-stone-400 opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500"
-                        aria-label="刪除這筆對話"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </CardContent>

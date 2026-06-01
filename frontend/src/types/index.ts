@@ -116,6 +116,11 @@ export interface ConversationSummary {
   preview: string;
 }
 
+export interface ConversationHistoryResponse {
+  conversation_id: number | null;
+  messages: ChatMessage[];
+}
+
 export interface DiagnosticResponse {
   user_name: string | null;
   mbti: string | null;

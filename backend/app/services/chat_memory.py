@@ -12,6 +12,18 @@ from ..models_db.memory import UserMemory
 from ..models_db.user import User
 
 
+def _serialize_messages(conv: Conversation) -> list[dict]:
+    return [
+        {
+            "role": message.role,
+            "content": message.content,
+            "timestamp": message.created_at.isoformat() if message.created_at else None,
+            "scope": message.scope,
+        }
+        for message in conv.messages
+    ]
+
+
 def upsert_user(db: Session, *, user_name: str, **fields: Any) -> User:
     user = db.get(User, user_name)
     if user is None:
@@ -124,46 +136,64 @@ def save_conversation(
     return conv
 
 
+def get_conversation(
+    db: Session, *, user_name: str, conversation_id: int
+) -> Conversation | None:
+    return (
+        db.query(Conversation)
+        .filter_by(id=conversation_id, user_name=user_name)
+        .first()
+    )
+
+
+def latest_conversation(db: Session, user_name: str) -> Conversation | None:
+    return (
+        db.query(Conversation)
+        .filter_by(user_name=user_name)
+        .order_by(Conversation.ended_at.desc(), Conversation.started_at.desc())
+        .first()
+    )
+
+
 def list_conversations(db: Session, user_name: str) -> list[dict]:
     rows = (
         db.query(Conversation)
         .filter_by(user_name=user_name)
-        .order_by(Conversation.started_at.desc())
+        .order_by(Conversation.ended_at.desc(), Conversation.started_at.desc())
         .all()
     )
     out = []
     for c in rows:
-        first = c.messages[0].content if c.messages else ""
+        first_user_message = next(
+            (message.content for message in c.messages if message.role == "user"),
+            c.messages[0].content if c.messages else "",
+        )
         out.append(
             {
                 "id": c.id,
                 "timestamp": c.started_at.isoformat() if c.started_at else None,
                 "message_count": len(c.messages),
-                "preview": first[:50],
+                "preview": first_user_message[:50],
             }
         )
     return out
 
 
 def latest_conversation_messages(db: Session, user_name: str) -> list[dict]:
-    conv = (
-        db.query(Conversation)
-        .filter_by(user_name=user_name)
-        .order_by(Conversation.started_at.desc())
-        .first()
-    )
+    conv = latest_conversation(db, user_name)
     if not conv:
         return []
 
-    return [
-        {
-            "role": message.role,
-            "content": message.content,
-            "timestamp": message.created_at.isoformat() if message.created_at else None,
-            "scope": message.scope,
-        }
-        for message in conv.messages
-    ]
+    return _serialize_messages(conv)
+
+
+def conversation_messages(
+    db: Session, *, user_name: str, conversation_id: int
+) -> list[dict] | None:
+    conv = get_conversation(db, user_name=user_name, conversation_id=conversation_id)
+    if not conv:
+        return None
+    return _serialize_messages(conv)
 
 
 def delete_conversation(
@@ -191,20 +221,23 @@ def delete_all_conversations(db: Session, *, user_name: str) -> int:
     db.commit()
     return count
 
+
 def recent_prompt_context_messages(
     db: Session,
     user_name: str,
     limit: int = 12,
+    conversation_id: int | None = None,
 ) -> list[dict]:
-    rows = (
+    query = (
         db.query(Message)
         .join(Conversation)
         .filter(Conversation.user_name == user_name)
         .filter(Message.scope.in_(["in_scope", "followup"]))
-        .order_by(Message.created_at.desc())
-        .limit(limit)
-        .all()
     )
+    if conversation_id is not None:
+        query = query.filter(Conversation.id == conversation_id)
+
+    rows = query.order_by(Message.created_at.desc()).limit(limit).all()
 
     rows = list(reversed(rows))
 
@@ -217,7 +250,8 @@ def recent_prompt_context_messages(
         }
         for m in rows
     ]
-    
+
+
 def create_conversation_with_message(
     db: Session,
     *,
@@ -249,8 +283,10 @@ def create_conversation_with_message(
         )
     )
 
+    conv.ended_at = created
     db.commit()
     return conv
+
 
 def append_message_to_conversation(
     db: Session,
@@ -277,6 +313,5 @@ def append_message_to_conversation(
             created_at=created,
         )
     )
-
-    conv.ended_at = datetime.now(timezone.utc)
+    conv.ended_at = created
     db.commit()
