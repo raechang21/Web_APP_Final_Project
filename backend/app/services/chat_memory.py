@@ -315,3 +315,14 @@ def append_message_to_conversation(
     )
     conv.ended_at = created
     db.commit()
+
+
+def latest_message_scope(db: Session, user_name: str) -> str | None:
+    message = (
+        db.query(Message)
+        .join(Conversation)
+        .filter(Conversation.user_name == user_name)
+        .order_by(Message.created_at.desc())
+        .first()
+    )
+    return message.scope if message else None

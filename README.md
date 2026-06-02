@@ -1,56 +1,97 @@
-# Web_APP_Final_Project
+# 從多元人格測驗到諮詢小助手
 
-This project uses a separate frontend/backend architecture:
+專案結合 MBTI、五大人格、星座、黑暗三角人格的互動式人格測驗與結果分析，旨在協助使用者透過多元人格評估工具，更全面地探索與理解自身人格特質。除此之外，系統整合 Gemini API，提供具有「類」專業心理諮詢師取向的個性化分析和 AI 對話。
+
+## 技術架構
        
 - `frontend/`: React + Vite
 - `backend/`: FastAPI + SQLite
-- The chatbot feature also depends on a local `Ollama` service
+- `AI`：Gemini-3.1-flash-lite
 
-## Prerequisites
+## 安裝需求
 
-Make sure the following are installed on your machine:
+請先確認電腦已安裝以下工具：
 
 - Node.js 18+ and `npm`
 - Python 3.10+ and `pip`
-- `Ollama` if you want to use the chatbot feature
 
-## How to Run the Project
+- Google AI Studio: API key
 
-It is recommended to use two terminal windows: one for the backend and one for the frontend.
+## 如何執行專案
 
-### 1. Start the Backend
+建議使用兩個終端機視窗：一個執行後端，另一個執行前端。
 
-Go into the backend directory, create a virtual environment, install dependencies, and create `.env`:
+### 1. 啟動後端
+
+進入後端資料夾：
 
 ```bash
 cd backend
+```
+
+建立虛擬環境：
+
+#### Windows
+```bash
+python -m venv .venv
+.venv/Scripts/activate
+```
+
+#### macOS/Linux
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
+```
+
+安裝套件，並建立 `.env` 檔案：
+
+```bash
 cp .env.example .env
 pip install -r requirements.txt
 ```
 
-Start FastAPI:
+Gemini API Key 設定：
+
+將你的 API Key 複製到 `backend/.env`
+
+啟動 FastAPI:
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-After the backend starts, you can verify it here:
+後端啟動後，可以透過以下網址確認是否正常運作：
 
 ```text
 http://localhost:8000/api/health
 ```
 
-If it is working correctly, you should see:
+如果運作正常，應該會看到：
 
 ```json
 {"ok": true}
 ```
 
-### 2. Start the Frontend
+Gemini API 連線檢查：
 
-Open another terminal:
+```text
+http://localhost:8000/api/test-gemini
+```
+
+如果 Gemini 設定正常，應該會看到類似以下回應：
+
+```json
+{
+  "status": "success",
+  "provider": "gemini",
+  "model": "gemini-3.1-flash-lite",
+  "response": "OK"
+}
+```
+
+### 2. 啟動前端
+
+開啟另一個終端機，進入前端資料夾，安裝前端依賴套件，啟動前端開發伺服器：
 
 ```bash
 cd frontend
@@ -58,77 +99,32 @@ npm install
 npm run dev
 ```
 
-Default frontend URL:
+前端預設網址：
 
 ```text
 http://localhost:5173
 ```
 
-## Extra Setup for the Chatbot
+## 環境變數
 
-The chatbot feature uses a local Ollama service. The default model is `gemma3:4b`. If you want to use the chatbot page, first run:
-
-```bash
-ollama serve
-```
-
-Then download the model:
-
-```bash
-ollama pull gemma3:4b
-```
-
-To verify that Ollama is available:
-
-```text
-http://localhost:8000/api/test-ollama
-```
-
-## Environment Variables
-
-The backend `.env` can be based on `backend/.env.example`:
+後端的 `.env` 可以參考 `backend/.env.example` 建立：
 
 ```env
 SECRET_KEY=change-me-to-a-long-random-string
 FRONTEND_ORIGIN=http://localhost:5173
 DATABASE_URL=sqlite:///./personality_paradox.db
-OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=gemma3:4b
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-3.1-flash-lite
 SESSION_MAX_AGE=7200
 ```
 
-For normal local development, these default values are usually enough.
+## 預設連接埠
 
-## Default Ports
+- 前端： `5173`
+- 後端： `8000`
 
-- Frontend: `5173`
-- Backend: `8000`
-- Ollama: `11434`
-
-Vite is already configured to proxy `/api` requests to `http://localhost:8000`, so once both frontend and backend are running, they should connect correctly.
-
-## Common Issues
-
-### 1. The frontend opens, but API requests fail
-
-First, make sure the backend is running:
+Vite 已設定將 /api 請求代理到：
 
 ```text
-http://localhost:8000/api/health
-```
-
-### 2. The chatbot says it cannot connect to Ollama
-
-Check the following:
-
-- Ollama is installed
-- `ollama serve` is running
-- `gemma3:4b` has been downloaded
-
-### 3. The database does not exist on first startup
-
-This is normal. The backend will automatically create the SQLite database file on startup:
-
-```text
-backend/personality_paradox.db
+http://localhost:8000
 ```

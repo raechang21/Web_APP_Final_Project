@@ -52,7 +52,7 @@ def create_radar_chart(bigfive: BigFiveResult) -> go.Figure:
                 gridcolor='lightgray'
             ),
             angularaxis=dict(
-                gridcolor='lightgray'
+                gridcolor='lightgray',
             )
         ),
         showlegend=False,

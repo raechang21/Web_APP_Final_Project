@@ -93,7 +93,6 @@ Return exactly one label:
 
 
 @router.get("/test-gemini")
-@router.get("/test-ollama")
 def test_gemini() -> dict:
     try:
         response = llm_client.generate("Please reply with OK.", num_predict=20)

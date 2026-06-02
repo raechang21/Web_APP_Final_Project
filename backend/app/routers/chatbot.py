@@ -144,12 +144,13 @@ def chatbot_stream(
         chat_memory.recent_prompt_context_messages(
             db,
             user_name,
-            limit=6,
+            limit=12,
             conversation_id=active_conversation_id,
         )
         if user_name and active_conversation_id is not None
         else []
     )
+    previous_scope = chat_memory.latest_message_scope(db, user_name) if user_name else None
 
     # First message → treat as user name; check DB for returning user.
     if not user_name and not chat_history:
@@ -245,8 +246,9 @@ def chatbot_stream(
     
     message_scope = llm_client.classify_scope_with_ai(user_message)
 
-    if message_scope == "followup" and not chat_history:
-        message_scope = "out_of_scope"
+    if message_scope == "followup":
+        if previous_scope == "out_of_scope" or previous_scope is None:
+            message_scope = "out_of_scope"
 
     # Score query short-circuit (no LLM call).
     if _is_score_query(user_message):
@@ -358,11 +360,12 @@ def chatbot_stream(
 
                 full += chunk
                 yield _sse({"chunk": chunk})
+            assistant_scope = "followup" if message_scope == "out_of_scope" else message_scope
             assistant_entry = {
                 "role": "assistant",
                 "content": full,
                 "timestamp": _now_iso(),
-                "scope": message_scope,
+                "scope": assistant_scope,
             }
             if conversation_id:
                 chat_memory.append_message_to_conversation(

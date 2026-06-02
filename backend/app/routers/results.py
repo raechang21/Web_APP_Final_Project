@@ -91,10 +91,14 @@ def bigfive_chart(request: Request) -> dict:
                     "visible": True,
                     "range": [0, 6],
                     "tickvals": [1, 2, 3, 4, 5, 6],
+                },
+                "angularaxis": {
+                    "tickfont": {
+                        "size": 18,
+                    },
                 }
             },
             "showlegend": False,
-            "title": "Big Five 人格特質",
         },
     }
 
