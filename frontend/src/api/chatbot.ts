@@ -1,25 +1,34 @@
-import type { ChatMessage, ConversationSummary } from "@/types";
+import type {
+  ConversationHistoryResponse,
+  ConversationSummary,
+} from "@/types";
 
 import { apiRequest, streamSse } from "./client";
 
 export function streamChat(
   message: string,
+  conversationId: number | null,
   onEvent: (event: {
-  chunk?: string;
-  done?: boolean;
-  error?: string;
-  error_code?: string;
-  message?: string;
-}) => void,
+    chunk?: string;
+    done?: boolean;
+    error?: string;
+    error_code?: string;
+    message?: string;
+    conversation_id?: number | null;
+  }) => void,
 ) {
   return streamSse("/api/chatbot/stream", {
     method: "POST",
-    body: { message },
+    body: { message, conversation_id: conversationId },
   }, onEvent);
 }
 
-export function fetchChatHistory() {
-  return apiRequest<{ messages: ChatMessage[] }>("/api/chatbot/history");
+export function fetchChatHistory(conversationId?: number | null) {
+  const path =
+    conversationId == null
+      ? "/api/chatbot/history"
+      : `/api/chatbot/history/conversation/${conversationId}`;
+  return apiRequest<ConversationHistoryResponse>(path);
 }
 
 export function fetchAllHistories() {

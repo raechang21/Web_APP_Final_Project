@@ -35,6 +35,7 @@ class StartSessionIn(BaseModel):
 
 class ChatMessageIn(BaseModel):
     message: str = Field(min_length=1)
+    conversation_id: int | None = None
 
 
 class SessionOut(BaseModel):
