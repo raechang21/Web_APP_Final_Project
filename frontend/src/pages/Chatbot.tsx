@@ -175,18 +175,18 @@ export default function Chatbot() {
       <SectionHero
         eyebrow="AI Chatbot"
         description=""
-        title="你的個人化諮商小助手"
+        title="諮詢小助手＜(´⌯ ̫⌯`)＞"
       />
 
       <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_280px]">
         <SidebarSummary session={session} />
 
-        <Card className="min-h-[70vh]">
+        <Card className="h-[70vh]">
           <CardContent className="flex h-full flex-col gap-4 p-0">
             <div className="border-b border-stone-200 px-6 py-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h2 className="font-display text-3xl text-ink">聊天室 (2)</h2>
+                  <h2 className="font-display text-3xl text-ink">聊天室</h2>
                 </div>
               </div>
             </div>
@@ -224,14 +224,14 @@ export default function Chatbot() {
         <div className="space-y-4">
           <Card>
             <CardContent className="space-y-4">
-              <h3 className="font-display text-2xl text-ink">Quick Questions</h3>
+              <h3 className="font-display text-2xl text-ink">快速問題</h3>
               <QuickQuestions prompts={promptList} onSelect={(prompt) => handleSend(prompt)} />
             </CardContent>
           </Card>
           <Card>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between gap-3">
-                <h3 className="font-display text-2xl text-ink">Saved Histories</h3>
+                <h3 className="font-display text-2xl text-ink">對話紀錄</h3>
                 {histories.length > 0 ? (
                   <button
                     type="button"
@@ -239,12 +239,11 @@ export default function Chatbot() {
                     className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs text-stone-500 transition hover:bg-red-50 hover:text-red-600"
                     aria-label="清除全部記錄"
                   >
-                    <span>🗑️</span>
                     <span>全部清除</span>
                   </button>
                 ) : null}
               </div>
-              <div className="space-y-3">
+              <div className="max-h-[400px] space-y-3 overflow-y-auto pr-1">
                 {histories.length === 0 ? (
                   <p className="text-sm text-stone-500">目前沒有保存過的對話。</p>
                 ) : (
@@ -262,7 +261,7 @@ export default function Chatbot() {
                         className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 scale-75 items-center justify-center rounded-full text-stone-400 opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500"
                         aria-label="刪除這筆對話"
                       >
-                        🗑️
+                        刪除
                       </button>
                     </div>
                   ))

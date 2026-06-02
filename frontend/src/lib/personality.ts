@@ -5,12 +5,12 @@ import type {
 } from "@/types";
 
 export const FLOW_STEPS = [
-  { label: "Welcome", path: "/" },
+  { label: "歡迎", path: "/" },
   { label: "MBTI", path: "/mbti" },
-  { label: "Big Five", path: "/bigfive" },
-  { label: "Zodiac", path: "/zodiac" },
-  { label: "Dark Triad", path: "/dark-triad-intro" },
-  { label: "Results", path: "/results" },
+  { label: "五大人格", path: "/bigfive" },
+  { label: "星座", path: "/zodiac" },
+  { label: "黑暗三角", path: "/dark-triad-intro" },
+  { label: "結果", path: "/results" },
 ];
 
 

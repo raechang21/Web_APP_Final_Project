@@ -1,6 +1,8 @@
+import { useEffect, useRef, useState } from "react";
 import type { PropsWithChildren, ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
+import { restartSession } from "@/api/session";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session";
 
@@ -20,26 +22,26 @@ export function PageShell({
             </div>
             <div>
               <p className="font-display text-2xl">Beyond Personality Labels</p>
-              <p className="text-sm text-stone-500">從多元人格測驗到諮商小助手＜(´⌯ ̫⌯`)＞</p>
+              <p className="text-sm text-stone-500">
+                從多元人格測驗到諮商小助手＜(´⌯ ̫⌯`)＞
+              </p>
             </div>
           </Link>
-          <nav className="flex items-center gap-2 text-sm text-stone-500">
-            <NavItem to="/results" locked={!hasResults}>
-              Results
-            </NavItem>
-            <NavItem to="/deep-analysis" locked={!hasResults}>
-              Deep Analysis
-            </NavItem>
-            <NavItem to="/chatbot" locked={!hasResults}>
-              Chatbot
-            </NavItem>
-          </nav>
+          <div className="flex items-center gap-3">
+            <nav className="flex items-center gap-2 text-sm text-stone-500">
+              <NavItem to="/results" locked={!hasResults}>Results</NavItem>
+              <NavItem to="/deep-analysis" locked={!hasResults}>Deep Analysis</NavItem>
+              <NavItem to="/chatbot" locked={!hasResults}>Chatbot</NavItem>
+            </nav>
+            <UserMenu />
+          </div>
         </header>
         <main className={cn("space-y-6", className)}>{children}</main>
       </div>
     </div>
   );
 }
+
 
 function NavItem({
   to,
@@ -68,6 +70,88 @@ function NavItem({
     <Link to={to} className={cn(base, "hover:bg-white/70 hover:text-ink")}>
       {children}
     </Link>
+  );
+}
+
+function UserMenu() {
+  const navigate = useNavigate();
+  const userName = useSessionStore((state) => state.user_name);
+  const clear = useSessionStore((state) => state.clear);
+
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // 點選單外面自動收起
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  // 沒登入時不顯示頭像
+  if (!userName) return null;
+
+  async function handleLogout() {
+    try {
+      await restartSession();
+    } catch {
+      // 後端失敗時仍清前端 state，避免使用者卡在「以為已登出但其實沒」的狀態
+    }
+    clear();
+    setOpen(false);
+    navigate("/");
+  }
+
+  return (
+    <div ref={menuRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-stone-100 text-base font-medium text-ink transition hover:bg-stone-200"
+        aria-label={`使用者選單，當前登入為 ${userName}`}
+        aria-expanded={open}
+      >
+        {userName.charAt(0).toUpperCase()}
+      </button>
+
+      {open ? (
+        <div className="absolute right-0 top-full z-50 mt-2 w-64 origin-top-right rounded-2xl border border-stone-200 bg-[rgba(255,253,250,0.98)] p-5 shadow-soft backdrop-blur">
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-stone-400 transition hover:bg-stone-100 hover:text-ink"
+            aria-label="關閉選單"
+          >
+            ✕
+          </button>
+
+          <div className="flex flex-col items-center pt-1">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-stone-100 text-3xl">
+              😊
+            </div>
+            <p className="mt-3 text-sm text-ink">
+              <span className="font-medium">{userName}</span>
+              ，你好！
+            </p>
+          </div>
+
+          <div className="mt-4 border-t border-stone-100 pt-3">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-1.5 text-sm text-stone-600 transition hover:bg-red-50 hover:text-red-600"
+            >
+              <span>登出</span>
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 

@@ -18,7 +18,11 @@ const cards = [
   },
   {
     icon: "📊",
+<<<<<<< HEAD
     title: "大五人格",
+=======
+    title: "五大人格",
+>>>>>>> origin/UI_update
     summary: "15 個問題\n快速了解真實的你！",
     detail: "透過 15 個簡短題目，從開放性、盡責性、外向性、親和性與情緒穩定性五個面向分析你的性格特質，幫助你更全面理解自己的行為模式與內在傾向。",
   },
@@ -51,6 +55,7 @@ const cards = [
 export default function Welcome() {
   const navigate = useNavigate();
   const hydrate = useSessionStore((state) => state.hydrate);
+  const clear = useSessionStore((state) => state.clear);
   const session = useSessionStore((state) => state);
 
   const [name, setName] = useState(session.user_name ?? "");
@@ -66,6 +71,7 @@ export default function Welcome() {
       if (!value) {
         throw new Error("請先輸入你的名字");
       }
+      clear();
       const response = await startSession(value);
       await hydrate();
       navigate(response.redirect);
@@ -97,42 +103,66 @@ export default function Welcome() {
   return (
     <PageShell>
       <SectionHero
+<<<<<<< HEAD
         eyebrow="Welcome"
         title="從多元人格測驗到諮商小助手"
         description="本系統結合坊間廣為流傳之人格評估工具，輔以具信效度之人格心理測驗：MBTI、大五人格、星座、黑暗三角人格（Dark Triad），進行 AI 綜合分析，打破單一測驗視角的限制，提供多面向的人格詮釋方式。"
+=======
+        eyebrow="歡迎"
+        title="從多元人格測驗到諮詢小助手＜(´⌯ ̫⌯`)＞"
+        description="本系統結合坊間廣為流傳之人格評估工具，輔以具信效度之人格心理測驗：MBTI、五大人格、星座、黑暗三角，進行 AI 綜合分析，打破單一測驗視角的限制，提供多面向的人格詮釋方式。"
+>>>>>>> origin/UI_update
       />
 
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-      {expanded === null ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map((card, i) => (
-            <Card
-              key={card.title}
-              onClick={() => setExpanded(i)}
-              className="group cursor-pointer overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 hover:border-stone-300/80 hover:shadow-[0_24px_70px_rgba(54,47,31,0.14)]"
-            >
-              <CardContent>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-100 text-2xl transition-transform duration-300 ease-out group-hover:scale-110 group-hover:rotate-3">
-                  {card.icon}
+        {expanded === null ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {cards.map((card, i) => (
+              <Card
+                key={card.title}
+                onClick={() => setExpanded(i)}
+                className="group cursor-pointer overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 hover:border-stone-300/80 hover:shadow-[0_24px_70px_rgba(54,47,31,0.14)]"
+              >
+                <CardContent>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-100 text-2xl transition-transform duration-300 ease-out group-hover:scale-110 group-hover:rotate-3">
+                    {card.icon}
+                  </div>
+                  <h3 className="mt-4 font-display text-3xl text-ink">{card.title}</h3>
+                  <p className="mt-2 whitespace-pre-line text-sm leading-7 text-stone-600">{card.summary}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <Card key={expanded} className="relative animate-expand-in">
+              <CardContent className="space-y-6 p-8 sm:p-10">
+                <button
+                  onClick={() => setExpanded(null)}
+                  className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition hover:bg-stone-200 hover:text-ink"
+                  aria-label="收合"
+                >
+                  ✕
+                </button>
+
+                <div className="flex items-center gap-5">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-100 text-4xl">
+                    {cards[expanded].icon}
+                  </div>
+                  <div>
+                    <h3 className="mt-1 font-display text-3xl text-ink sm:text-4xl">
+                      {cards[expanded].title}
+                    </h3>
+                  </div>
                 </div>
-                <h3 className="mt-4 font-display text-3xl text-ink">{card.title}</h3>
-                <p className="mt-2 whitespace-pre-line text-sm leading-7 text-stone-600">{card.summary}</p>
+
+                <p className="max-w-3xl text-base leading-8 text-stone-700 sm:text-lg sm:leading-9">
+                  {cards[expanded].detail}
+                </p>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <Card key={expanded} className="relative animate-expand-in">
-            <CardContent className="space-y-6 p-8 sm:p-10">
-              <button
-                onClick={() => setExpanded(null)}
-                className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition hover:bg-stone-200 hover:text-ink"
-                aria-label="收合"
-              >
-                ✕
-              </button>
 
+<<<<<<< HEAD
               <div className="flex items-center gap-5">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-100 text-4xl">
                   {cards[expanded].icon}
@@ -168,9 +198,29 @@ export default function Welcome() {
                 </Card>
               );
             })}
+=======
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              {cards.map((card, i) => {
+                if (i === expanded) return null;
+                return (
+                  <Card
+                    key={card.title}
+                    onClick={() => setExpanded(i)}
+                    className="group cursor-pointer transition-all duration-300 ease-out hover:-translate-y-1 hover:border-stone-300/80 hover:shadow-[0_18px_50px_rgba(54,47,31,0.1)]"
+                  >
+                    <CardContent className="p-4 text-center">
+                      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-stone-100 text-xl transition-transform duration-300 ease-out group-hover:scale-110 group-hover:rotate-3">
+                        {card.icon}
+                      </div>
+                      <p className="mt-2 text-sm font-medium text-ink">{card.title}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+>>>>>>> origin/UI_update
           </div>
-        </div>
-      )}
+        )}
 
         <Card className="self-start">
           <CardContent className="space-y-6">

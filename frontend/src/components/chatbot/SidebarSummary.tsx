@@ -8,7 +8,7 @@ export function SidebarSummary({ session }: { session: SessionData }) {
     <div className="space-y-4">
       <Card className="bg-gradient-to-br from-ink to-stone-800 text-paper">
         <CardContent className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.28em] text-stone-300">Identity</p>
+          <p className="text-xs uppercase tracking-[0.28em] text-stone-300">個人資料</p>
           <h3 className="font-display text-3xl">
             {session.user_name || "尚未命名"}
           </h3>
@@ -26,7 +26,7 @@ export function SidebarSummary({ session }: { session: SessionData }) {
       {session.bigfive_scores ? (
         <Card>
           <CardContent className="space-y-4">
-            <h3 className="font-display text-2xl text-ink">Big Five</h3>
+            <h3 className="font-display text-2xl text-ink">五大人格</h3>
             {BIG_FIVE_META.map(({ key, label }) => (
               <div key={key} className="flex items-center justify-between text-sm">
                 <span className="text-stone-600">{label}</span>
@@ -42,7 +42,7 @@ export function SidebarSummary({ session }: { session: SessionData }) {
       {session.dark_triad_scores ? (
         <Card>
           <CardContent className="space-y-4">
-            <h3 className="font-display text-2xl text-ink">Dark Triad</h3>
+            <h3 className="font-display text-2xl text-ink">黑暗三角</h3>
             {DARK_TRIAD_META.map(({ key, label }) => (
               <div key={key} className="flex items-center justify-between text-sm">
                 <span className="text-stone-600">{label}</span>
