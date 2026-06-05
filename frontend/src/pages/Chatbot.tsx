@@ -242,7 +242,7 @@ export default function Chatbot() {
       <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_280px]">
         <SidebarSummary session={session} />
 
-        <Card className="h-[70vh]">
+        <Card className="h-[90vh]">
           <CardContent className="flex h-full flex-col gap-4 p-0">
             <div className="border-b border-stone-200 px-6 py-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
