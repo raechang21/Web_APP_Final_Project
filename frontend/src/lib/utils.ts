@@ -17,5 +17,6 @@ export function formatDate(iso?: string | null) {
   return new Intl.DateTimeFormat("zh-TW", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "Asia/Taipei",
   }).format(date);
 }
