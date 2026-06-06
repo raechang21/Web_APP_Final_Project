@@ -20,10 +20,13 @@ def get_session(request: Request, db: Session = Depends(get_db)) -> SessionOut:
         user_name=s.get("user_name"),
         mbti=s.get("mbti"),
         bigfive_scores=bigfive_scores,
+        bigfive_answers=s.get("bigfive_answers"),
         zodiac=s.get("zodiac"),
         dark_triad_scores=s.get("dark_triad_scores"),
+        dark_triad_answers=s.get("dark_triad_answers"),
         has_results=has_results,
         has_analysis=has_analysis,
+        profile_locked=s.get("profile_locked", False),
         is_quick_login=s.get("quick_login", False),
         welcome_message=s.get("welcome_message"),
     )
@@ -55,8 +58,11 @@ def start_session(
             s["user_name"] = name
             s["mbti"] = memory.get("mbti")
             s["bigfive_scores"] = bigfive_scores
+            s["bigfive_answers"] = memory.get("bigfive_answers")
             s["zodiac"] = memory.get("zodiac")
             s["dark_triad_scores"] = memory.get("dark_triad_scores")
+            s["dark_triad_answers"] = memory.get("dark_triad_answers")
+            s["profile_locked"] = memory.get("profile_locked", True)
             s["quick_login"] = True
             s["welcome_message"] = f"嗨，{name}，歡迎回來！"
 
@@ -93,8 +99,11 @@ def quick_login(
     s["user_name"] = name
     s["mbti"] = memory.get("mbti")
     s["bigfive_scores"] = bigfive_scores
+    s["bigfive_answers"] = memory.get("bigfive_answers")
     s["zodiac"] = memory.get("zodiac")
     s["dark_triad_scores"] = memory.get("dark_triad_scores")
+    s["dark_triad_answers"] = memory.get("dark_triad_answers")
+    s["profile_locked"] = memory.get("profile_locked", True)
     s["quick_login"] = True
 
     welcome = f"嗨，{name}，歡迎回來！很高興再次見到你。"

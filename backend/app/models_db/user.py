@@ -16,8 +16,10 @@ class User(Base):
     user_name: Mapped[str] = mapped_column(String, primary_key=True)
     mbti: Mapped[str | None] = mapped_column(String, nullable=True)
     bigfive_scores: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    bigfive_answers: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     zodiac: Mapped[str | None] = mapped_column(String, nullable=True)
     dark_triad_scores: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    dark_triad_answers: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     deep_analysis: Mapped[str | None] = mapped_column(String, nullable = True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(

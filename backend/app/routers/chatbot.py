@@ -150,7 +150,15 @@ def chatbot_stream(
         if user_name and active_conversation_id is not None
         else []
     )
-    previous_scope = chat_memory.latest_message_scope(db, user_name) if user_name else None
+    previous_scope = (
+        chat_memory.latest_message_scope(
+            db,
+            user_name,
+            conversation_id=active_conversation_id,
+        )
+        if user_name
+        else None
+    )
 
     # First message → treat as user name; check DB for returning user.
     if not user_name and not chat_history:
@@ -162,8 +170,11 @@ def chatbot_stream(
             s["user_name"] = potential_name
             s["mbti"] = memory.get("mbti")
             s["bigfive_scores"] = bigfive_scores
+            s["bigfive_answers"] = memory.get("bigfive_answers")
             s["zodiac"] = memory.get("zodiac")
             s["dark_triad_scores"] = memory.get("dark_triad_scores")
+            s["dark_triad_answers"] = memory.get("dark_triad_answers")
+            s["profile_locked"] = memory.get("profile_locked", True)
 
             welcome = f"嗨，{potential_name}，歡迎回來！很高興再次見到你。"
             summaries = memory.get("conversation_summaries") or []

@@ -13,10 +13,13 @@ export default function ZodiacSelection() {
   const navigate = useNavigate();
   const patchSession = useSessionStore((state) => state.patchSession);
   const bigfive = useSessionStore((state) => state.bigfive_scores);
+  const currentZodiac = useSessionStore((state) => state.zodiac);
+  const hasResults = useSessionStore((state) => state.has_results);
+  const isLocked = Boolean(currentZodiac);
   const [items, setItems] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(() => {
     try {
-      return sessionStorage.getItem("zodiac_selected") ?? useSessionStore.getState().zodiac;
+      return useSessionStore.getState().zodiac ?? sessionStorage.getItem("zodiac_selected");
     } catch {
       return useSessionStore.getState().zodiac;
     }
@@ -53,6 +56,10 @@ export default function ZodiacSelection() {
   }
 
   async function handleSubmit() {
+    if (isLocked) {
+      navigate(hasResults ? "/results" : "/dark-triad-intro");
+      return;
+    }
     if (!selected) {
       return;
     }
@@ -75,7 +82,11 @@ export default function ZodiacSelection() {
       <SectionHero
         eyebrow="Step 03"
         title="星座"
-        description=" "
+        description={
+          isLocked
+            ? "你已經完成星座選擇，這裡只能查看先前選擇，不能再修改。"
+            : " "
+        }
       />
 
       {loading ? <p className="text-stone-500">星座資料載入中...</p> : null}
@@ -89,13 +100,17 @@ export default function ZodiacSelection() {
             <button
               key={sign}
               type="button"
+              disabled={isLocked}
               className={cn(
-                "rounded-[28px] border p-6 text-left transition hover:-translate-y-1",
+                "rounded-[28px] border p-6 text-left transition hover:-translate-y-1 disabled:cursor-not-allowed disabled:hover:translate-y-0",
                 active
                   ? "border-lavender bg-[rgba(157,132,210,0.15)] ring-2 ring-lavender"
                   : "border-stone-200 bg-paper hover:border-stone-300",
               )}
               onClick={() => {
+                if (isLocked) {
+                  return;
+                }
                 setSelected(sign);
                 sessionStorage.setItem("zodiac_selected", sign);
               }}
@@ -113,7 +128,13 @@ export default function ZodiacSelection() {
 
       <div className="flex justify-end">
         <Button disabled={!selected || submitting} onClick={handleSubmit}>
-          {submitting ? "儲存中..." : "前往 Dark Triad"}
+          {submitting
+            ? "儲存中..."
+            : isLocked
+              ? hasResults
+                ? "查看 Results"
+                : "查看 Dark Triad"
+              : "前往 Dark Triad"}
         </Button>
       </div>
     </PageShell>

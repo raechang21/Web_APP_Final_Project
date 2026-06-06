@@ -92,6 +92,9 @@ export default function Chatbot() {
         : historyResponse.messages;
     setMessages(nextMessages);
     setActiveConversationId(historyResponse.conversation_id);
+    setInput("");
+    setError(null);
+    setStreaming(false);
   }
 
   async function handleSelectHistory(conversationId: number) {

@@ -11,7 +11,7 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
         <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
           <img
             src="/assistant-avatar.png"
-            alt="AI 諮商助手"
+            alt="AI 諮詢助手"
             className="h-full w-full object-cover"
           />
         </div>

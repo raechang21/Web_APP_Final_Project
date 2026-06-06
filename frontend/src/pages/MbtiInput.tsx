@@ -17,9 +17,10 @@ export default function MbtiInput() {
   const hydrated = useSessionStore((state) => state.hydrated);
   const userName = useSessionStore((state) => state.user_name);
   const currentMbti = useSessionStore((state) => state.mbti);
+  const isLocked = Boolean(currentMbti);
   const [selected, setSelected] = useState<MbtiType | null>(() => {
     try {
-      return (sessionStorage.getItem("mbti_selected") as MbtiType | null) ?? currentMbti;
+      return currentMbti ?? (sessionStorage.getItem("mbti_selected") as MbtiType | null);
     } catch {
       return currentMbti;
     }
@@ -32,6 +33,10 @@ export default function MbtiInput() {
   }
 
   async function handleSubmit() {
+    if (isLocked) {
+      navigate("/bigfive");
+      return;
+    }
     if (!selected) {
       return;
     }
@@ -54,7 +59,11 @@ export default function MbtiInput() {
       <SectionHero
         eyebrow="Step 01"
         title="MBTI"
-        description="MBTI 將人格分為 16 種類型，每種都有獨特的特質組合。選擇最符合你的類型，作為後續測驗的起點。"
+        description={
+          isLocked
+            ? "你已經完成 MBTI，這裡只能查看先前選擇，不能再修改。"
+            : "MBTI 將人格分為 16 種類型，每種都有獨特的特質組合。選擇最符合你的類型，作為後續測驗的起點。"
+        }
       />
       <a href="https://www.16personalities.com/tw/%E6%80%A7%E6%A0%BC%E6%B8%AC%E8%A9%A6"
         rel="noreferrer"
@@ -96,14 +105,18 @@ export default function MbtiInput() {
                   return (
                     <button
                       key={item.type}
+                      disabled={isLocked}
                       className={cn(
-                        "rounded-[24px] border p-5 text-left transition hover:-translate-y-1",
+                        "rounded-[24px] border p-5 text-left transition hover:-translate-y-1 disabled:cursor-not-allowed disabled:hover:translate-y-0",
                         group.tone,
                         active
                           ? "ring-2 ring-ink"
                           : "border-stone-200 bg-white hover:border-stone-300",
                       )}
                       onClick={() => {
+                        if (isLocked) {
+                          return;
+                        }
                         setSelected(item.type);
                         sessionStorage.setItem("mbti_selected", item.type);
                       }}
@@ -132,7 +145,7 @@ export default function MbtiInput() {
         {error ? <p className="text-sm text-red-500">{error}</p> : null}
         <div className="flex justify-end">
           <Button onClick={handleSubmit} disabled={!selected || submitting}>
-            {submitting ? "儲存中..." : "前往 Big Five"}
+            {submitting ? "儲存中..." : isLocked ? "查看 Big Five" : "前往 Big Five"}
           </Button>
         </div>
       </div>

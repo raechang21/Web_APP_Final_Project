@@ -15,8 +15,16 @@ export default function DarkTriadTest() {
   const navigate = useNavigate();
   const zodiac = useSessionStore((state) => state.zodiac);
   const patchSession = useSessionStore((state) => state.patchSession);
+  const darkTriadScores = useSessionStore((state) => state.dark_triad_scores);
+  const savedAnswers = useSessionStore((state) => state.dark_triad_answers);
+  const profileLocked = useSessionStore((state) => state.profile_locked);
+  const isLocked = profileLocked || Boolean(darkTriadScores || savedAnswers);
   const [questions, setQuestions] = useState<DarkTriadQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<number, number>>(() => {
+    if (savedAnswers) {
+      return savedAnswers;
+    }
+
     try {
       const saved = sessionStorage.getItem("dark_triad_answers");
       return saved ? (JSON.parse(saved) as Record<number, number>) : {};
@@ -27,6 +35,13 @@ export default function DarkTriadTest() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (savedAnswers && Object.keys(answers).length === 0) {
+      setAnswers(savedAnswers);
+      sessionStorage.setItem("dark_triad_answers", JSON.stringify(savedAnswers));
+    }
+  }, [answers, savedAnswers]);
 
   useEffect(() => {
     let active = true;
@@ -56,11 +71,20 @@ export default function DarkTriadTest() {
   }
 
   async function handleSubmit() {
+    if (isLocked) {
+      navigate("/results");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
       const response = await submitDarkTriad(answers);
-      patchSession({ dark_triad_scores: response.dark_triad_scores, has_results: true });
+      patchSession({
+        dark_triad_scores: response.dark_triad_scores,
+        dark_triad_answers: answers,
+        has_results: true,
+        profile_locked: true,
+      });
       navigate("/results");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Dark Triad 提交失敗");
@@ -77,7 +101,11 @@ export default function DarkTriadTest() {
       <SectionHero
         eyebrow="Optional Step"
         title="黑暗三角人格測驗"
-        description="每題請選擇最符合你的反應，幫助我們更全面分析你的性格特質。這些都是人格的自然組成部分！不是病理診斷喔～放輕鬆，跟著直覺選就對了😊。"
+        description={
+          isLocked
+            ? "這份紀錄已經鎖定，這裡只能查看先前作答，不能再修改。"
+            : "每題請選擇最符合你的反應，幫助我們更全面分析你的性格特質。這些都是人格的自然組成部分！不是病理診斷喔～放輕鬆，跟著直覺選就對了😊。"
+        }
       />
 
       {loading ? <p className="text-stone-500">題目載入中...</p> : null}
@@ -102,14 +130,22 @@ export default function DarkTriadTest() {
                     <button
                       key={option.value}
                       type="button"
+                      disabled={isLocked}
                       className={cn(
-                        "rounded-2xl border px-4 py-4 text-center transition hover:-translate-y-0.5",
-                        active
-                          ? "border-lavender bg-lavender text-white"
-                          : "border-stone-200 bg-white text-stone-600 hover:border-stone-300",
+                        "rounded-2xl border px-4 py-4 text-center transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:hover:translate-y-0",
+                        isLocked && active
+                          ? "border-purple-200 bg-purple-100 text-purple-700"
+                          : isLocked
+                            ? "border-stone-100 bg-stone-50 text-stone-400"
+                            : active
+                              ? "border-lavender bg-lavender text-white"
+                              : "border-stone-200 bg-white text-stone-600 hover:border-stone-300",
                       )}
                       onClick={() =>
                         setAnswers((current) => {
+                          if (isLocked) {
+                            return current;
+                          }
                           const next = { ...current, [question.id]: option.value };
                           sessionStorage.setItem("dark_triad_answers", JSON.stringify(next));
                           return next;
@@ -140,9 +176,9 @@ export default function DarkTriadTest() {
             <div className="flex justify-end">
               <Button
                 onClick={handleSubmit}
-                disabled={submitting || completed !== questions.length}
+                disabled={submitting || (!isLocked && completed !== questions.length)}
               >
-                {submitting ? "送出中..." : "前往 Results"}
+                {submitting ? "送出中..." : isLocked ? "查看 Results" : "前往 Results"}
               </Button>
             </div>
           </div>

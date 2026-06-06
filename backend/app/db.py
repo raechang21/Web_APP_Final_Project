@@ -42,6 +42,10 @@ def _migrate_sqlite_schema() -> None:
             user_columns = {column["name"] for column in inspector.get_columns("users")}
             if "deep_analysis" not in user_columns:
                 conn.execute(text("ALTER TABLE users ADD COLUMN deep_analysis VARCHAR"))
+            if "bigfive_answers" not in user_columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN bigfive_answers JSON"))
+            if "dark_triad_answers" not in user_columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN dark_triad_answers JSON"))
 
         if "messages" in table_names:
             message_columns = {column["name"] for column in inspector.get_columns("messages")}

@@ -42,9 +42,12 @@ class SessionOut(BaseModel):
     user_name: str | None = None
     mbti: str | None = None
     bigfive_scores: dict | None = None
+    bigfive_answers: dict | None = None
     zodiac: str | None = None
     dark_triad_scores: dict | None = None
+    dark_triad_answers: dict | None = None
     has_results: bool = False
     has_analysis: bool = False
+    profile_locked: bool = False
     is_quick_login: bool = False
     welcome_message: str | None = None

@@ -15,8 +15,15 @@ export default function BigFiveTest() {
   const navigate = useNavigate();
   const patchSession = useSessionStore((state) => state.patchSession);
   const mbti = useSessionStore((state) => state.mbti);
+  const bigfiveScores = useSessionStore((state) => state.bigfive_scores);
+  const savedAnswers = useSessionStore((state) => state.bigfive_answers);
+  const isLocked = Boolean(bigfiveScores);
   const [questions, setQuestions] = useState<BigFiveQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<number, number>>(() => {
+    if (savedAnswers) {
+      return savedAnswers;
+    }
+
     try {
       const saved = sessionStorage.getItem("bigfive_answers");
       return saved ? (JSON.parse(saved) as Record<number, number>) : {};
@@ -27,6 +34,13 @@ export default function BigFiveTest() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (savedAnswers && Object.keys(answers).length === 0) {
+      setAnswers(savedAnswers);
+      sessionStorage.setItem("bigfive_answers", JSON.stringify(savedAnswers));
+    }
+  }, [answers, savedAnswers]);
 
   useEffect(() => {
     let active = true;
@@ -58,12 +72,17 @@ export default function BigFiveTest() {
   const completed = Object.keys(answers).length;
 
   async function handleSubmit() {
+    if (isLocked) {
+      navigate("/zodiac");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
       const response = await submitBigFive(answers);
       patchSession({
         bigfive_scores: response.bigfive_scores,
+        bigfive_answers: answers,
         has_results: false,
       });
       navigate("/zodiac");
@@ -80,7 +99,11 @@ export default function BigFiveTest() {
       <SectionHero
         eyebrow="Step 02"
         title="五大人格"
-        description="這個測驗幫助你了解你的五大人格特質：開放性、嚴謹性、外向性、友善性、神經質（李仁豪、鍾芯瑜，2020）。每題請選擇最符合你的反應，幫助我們更全面地分析你的性格特質。這些都是人格的自然組成部分！放輕鬆，跟著直覺選就對了😊😊。"
+        description={
+          isLocked
+            ? "你已經完成 Big Five，這裡只能查看先前作答，不能再修改。"
+            : "這個測驗幫助你了解你的五大人格特質：開放性、嚴謹性、外向性、友善性、神經質（李仁豪、鍾芯瑜，2020）。每題請選擇最符合你的反應，幫助我們更全面地分析你的性格特質。這些都是人格的自然組成部分！放輕鬆，跟著直覺選就對了😊😊。"
+        }
       />
 
 
@@ -106,14 +129,22 @@ export default function BigFiveTest() {
                     <button
                       key={option.value}
                       type="button"
+                      disabled={isLocked}
                       className={cn(
-                        "rounded-2xl border px-4 py-4 text-center transition hover:-translate-y-0.5",
-                        active
-                          ? "border-accent bg-accent text-white"
-                          : "border-stone-200 bg-white text-stone-600 hover:border-stone-300",
+                        "rounded-2xl border px-4 py-4 text-center transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:hover:translate-y-0",
+                        isLocked && active
+                          ? "border-sky-200 bg-sky-100 text-sky-700"
+                          : isLocked
+                            ? "border-stone-100 bg-stone-50 text-stone-400"
+                            : active
+                              ? "border-accent bg-accent text-white"
+                              : "border-stone-200 bg-white text-stone-600 hover:border-stone-300",
                       )}
                       onClick={() =>
                         setAnswers((current) => {
+                          if (isLocked) {
+                            return current;
+                          }
                           const next = { ...current, [question.id]: option.value };
                           sessionStorage.setItem("bigfive_answers", JSON.stringify(next));
                           return next;
@@ -144,9 +175,9 @@ export default function BigFiveTest() {
             <div className="flex justify-end">
               <Button
                 onClick={handleSubmit}
-                disabled={submitting || completed !== questions.length}
+                disabled={submitting || (!isLocked && completed !== questions.length)}
               >
-                {submitting ? "送出中..." : "前往 Zodiac"}
+                {submitting ? "送出中..." : isLocked ? "查看 Zodiac" : "前往 Zodiac"}
               </Button>
             </div>
           </div>

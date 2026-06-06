@@ -23,7 +23,7 @@ export function PageShell({
             <div>
               <p className="font-display text-2xl">Beyond Personality Labels</p>
               <p className="text-sm text-stone-500">
-                從多元人格測驗到諮商小助手＜(´⌯ ̫⌯`)＞
+                從多元人格測驗到諮詢小助手＜(´⌯ ̫⌯`)＞
               </p>
             </div>
           </Link>

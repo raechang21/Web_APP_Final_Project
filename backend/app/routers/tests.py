@@ -23,6 +23,17 @@ from ..services.utils.data_loader import (
 
 router = APIRouter(prefix="/api", tags=["tests"])
 
+
+def _reject_if_completed(request: Request, *keys: str, label: str) -> None:
+    if request.session.get("profile_locked") or any(
+        request.session.get(key) is not None for key in keys
+    ):
+        raise HTTPException(
+            409,
+            f"{label} 已完成，不能修改；請到結果頁查看以前的記錄",
+        )
+
+
 def _persist_profile(request: Request, db: Session) -> None:
     user_name = request.session.get("user_name")
     if not user_name:
@@ -33,8 +44,11 @@ def _persist_profile(request: Request, db: Session) -> None:
         user_name = user_name, 
         mbti = request.session.get("mbti"),
         bigfive_scores = request.session.get("bigfive_scores"),
+        bigfive_answers = request.session.get("bigfive_answers"),
         zodiac = request.session.get("zodiac"),
         dark_triad_scores = request.session.get("dark_triad_scores"),
+        dark_triad_answers = request.session.get("dark_triad_answers"),
+        profile_locked = request.session.get("profile_locked", False),
     )
 
 
@@ -44,6 +58,8 @@ def submit_mbti(
     request: Request,
     db: Session = Depends(get_db),
 ) -> dict:
+    _reject_if_completed(request, "mbti", label="MBTI")
+
     mbti = payload.mbti_type.upper().strip()
     if mbti not in VALID_MBTI:
         raise HTTPException(400, "請輸入有效的 MBTI 類型")
@@ -68,6 +84,12 @@ def submit_big_five(
 ) -> dict:
     if "mbti" not in request.session:
         raise HTTPException(400, "請先完成 MBTI 測驗")
+    _reject_if_completed(
+        request,
+        "bigfive_scores",
+        "bigfive_answers",
+        label="Big Five",
+    )
     
     questions, _ = load_bigfive_questions()
     if len(payload.answers) != len(questions):
@@ -75,6 +97,7 @@ def submit_big_five(
     
     scores = calculate_bigfive_scores(payload.answers, questions)
     request.session["bigfive_scores"] = scores
+    request.session["bigfive_answers"] = payload.answers
     _persist_profile(request, db)
     
     return {"bigfive_scores": scores}
@@ -93,6 +116,7 @@ def submit_zodiac(
 ) -> dict:
     if "bigfive_scores" not in request.session:
         raise HTTPException(400, "請先完成 Big Five 測驗")
+    _reject_if_completed(request, "zodiac", label="星座")
     
     if payload.zodiac not in ZODIAC_SIGNS:
         raise HTTPException(400, "無效的星座")
@@ -117,6 +141,12 @@ def submit_dark_triad(
 ) -> dict:
     if "zodiac" not in request.session:
         raise HTTPException(400, "請先選擇星座")
+    _reject_if_completed(
+        request,
+        "dark_triad_scores",
+        "dark_triad_answers",
+        label="Dark Triad",
+    )
     
     questions = load_dark_triad_questions()
     if len(payload.answers) != len(questions):
@@ -124,6 +154,8 @@ def submit_dark_triad(
     
     scores = calculate_dark_triad_scores(payload.answers, questions)
     request.session["dark_triad_scores"] = scores
+    request.session["dark_triad_answers"] = payload.answers
+    request.session["profile_locked"] = True
     _persist_profile(request, db)
     
     return {"dark_triad_scores": scores}
@@ -134,6 +166,15 @@ def skip_dark_triad(
     request: Request,
     db: Session = Depends(get_db),
 ) -> dict:
+    _reject_if_completed(
+        request,
+        "dark_triad_scores",
+        "dark_triad_answers",
+        label="Dark Triad",
+    )
+
     request.session["dark_triad_scores"] = None
+    request.session["dark_triad_answers"] = None
+    request.session["profile_locked"] = True
     _persist_profile(request, db)
     return {"skipped": True}

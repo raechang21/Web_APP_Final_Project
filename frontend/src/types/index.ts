@@ -34,10 +34,13 @@ export interface SessionData {
   user_name: string | null;
   mbti: MbtiType | null;
   bigfive_scores: BigFiveScores | null;
+  bigfive_answers: Record<number, number> | null;
   zodiac: string | null;
   dark_triad_scores: DarkTriadScores | null;
+  dark_triad_answers: Record<number, number> | null;
   has_results: boolean;
   has_analysis: boolean;
+  profile_locked: boolean;
   is_quick_login: boolean;
   welcome_message: string | null;
 }

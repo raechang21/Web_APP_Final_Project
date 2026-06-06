@@ -86,6 +86,7 @@ def save_chat_memory(
         summaries = summaries[-3:]
 
     memory_data = {
+        **existing,
         "user_name": user_name,
         "mbti": mbti,
         "bigfive_scores": bigfive_scores,
@@ -317,12 +318,18 @@ def append_message_to_conversation(
     db.commit()
 
 
-def latest_message_scope(db: Session, user_name: str) -> str | None:
-    message = (
+def latest_message_scope(
+    db: Session,
+    user_name: str,
+    conversation_id: int | None = None,
+) -> str | None:
+    query = (
         db.query(Message)
         .join(Conversation)
         .filter(Conversation.user_name == user_name)
-        .order_by(Message.created_at.desc())
-        .first()
     )
+    if conversation_id is not None:
+        query = query.filter(Conversation.id == conversation_id)
+
+    message = query.order_by(Message.created_at.desc()).first()
     return message.scope if message else None

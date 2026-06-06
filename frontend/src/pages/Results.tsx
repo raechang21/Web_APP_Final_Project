@@ -32,16 +32,20 @@ export default function Results() {
         }
         setData(results);
         setChart(figure);
+        const currentSession = useSessionStore.getState();
         setSession({
-          user_name: useSessionStore.getState().user_name,
+          user_name: currentSession.user_name,
           mbti: results.mbti,
           bigfive_scores: results.bigfive_scores,
+          bigfive_answers: currentSession.bigfive_answers,
           zodiac: results.zodiac,
           dark_triad_scores: results.dark_triad_scores,
+          dark_triad_answers: currentSession.dark_triad_answers,
           has_results: true,
           has_analysis: Boolean(results.analysis.comprehensive),
-          is_quick_login: useSessionStore.getState().is_quick_login,
-          welcome_message: useSessionStore.getState().welcome_message,
+          profile_locked: currentSession.profile_locked,
+          is_quick_login: currentSession.is_quick_login,
+          welcome_message: currentSession.welcome_message,
         });
       })
       .catch((err) => {
@@ -210,7 +214,7 @@ export default function Results() {
                         ⚠️ <strong className="text-ink">接納多元性</strong>──每種人格類型都有其優勢,沒有絕對的好壞之分。
                       </li>
                       <li>
-                        ⚠️ <strong className="text-ink">尋求專業協助</strong>──如果在自我探索過程中遇到困擾,建議尋求專業心理諮商師的幫助。
+                        ⚠️ <strong className="text-ink">尋求專業協助</strong>──如果在自我探索過程中遇到困擾,建議尋求專業心理諮詢師的幫助。
                       </li>
                     </ul>
                   </div>

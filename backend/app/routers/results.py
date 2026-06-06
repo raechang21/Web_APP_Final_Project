@@ -207,6 +207,9 @@ def deep_analysis_stream(
     mbti, bigfive, zodiac, dark_triad = _ensure_results(request, db)
     prompt = _build_comprehensive_prompt(mbti, bigfive, zodiac, dark_triad)
     user_name = request.session.get("user_name")
+    memory = user_repo.load_memory(db, user_name) if user_name else {}
+    bigfive_answers = request.session.get("bigfive_answers") or (memory or {}).get("bigfive_answers")
+    dark_triad_answers = request.session.get("dark_triad_answers") or (memory or {}).get("dark_triad_answers")
 
     def generate():
         full = ""
@@ -236,9 +239,12 @@ def deep_analysis_stream(
                     user_name=user_name,
                     mbti=mbti,
                     bigfive_scores=bigfive,
+                    bigfive_answers=bigfive_answers,
                     zodiac=zodiac,
                     dark_triad_scores=dark_triad,
+                    dark_triad_answers=dark_triad_answers,
                     deep_analysis=full,
+                    profile_locked=request.session.get("profile_locked", False),
                 )
             yield f"data: {json.dumps({'done': True})}\n\n"
         except Exception as e:

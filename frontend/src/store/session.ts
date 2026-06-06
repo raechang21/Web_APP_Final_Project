@@ -9,10 +9,13 @@ const emptySession: SessionData = {
   user_name: null,
   mbti: null,
   bigfive_scores: null,
+  bigfive_answers: null,
   zodiac: null,
   dark_triad_scores: null,
+  dark_triad_answers: null,
   has_results: false,
   has_analysis: false,
+  profile_locked: false,
   is_quick_login: false,
   welcome_message: null,
 };

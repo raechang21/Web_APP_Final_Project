@@ -10,7 +10,11 @@ import { useSessionStore } from "@/store/session";
 export default function DarkTriadIntro() {
   const navigate = useNavigate();
   const zodiac = useSessionStore((state) => state.zodiac);
+  const darkTriadScores = useSessionStore((state) => state.dark_triad_scores);
+  const darkTriadAnswers = useSessionStore((state) => state.dark_triad_answers);
+  const profileLocked = useSessionStore((state) => state.profile_locked);
   const patchSession = useSessionStore((state) => state.patchSession);
+  const hasDarkTriadRecord = Boolean(darkTriadScores || darkTriadAnswers);
 
   if (!zodiac) {
     return <Navigate to="/zodiac" replace />;
@@ -18,7 +22,13 @@ export default function DarkTriadIntro() {
 
   async function handleSkip() {
     await skipDarkTriad();
-    patchSession({ dark_triad_scores: null, has_results: true });
+    sessionStorage.removeItem("dark_triad_answers");
+    patchSession({
+      dark_triad_scores: null,
+      dark_triad_answers: null,
+      has_results: true,
+      profile_locked: true,
+    });
     navigate("/results");
   }
 
@@ -52,10 +62,18 @@ export default function DarkTriadIntro() {
             </div>
           </div>
           <div className="flex flex-wrap justify-end gap-3">
-            <Button variant="secondary" onClick={handleSkip}>
-              跳過直接看結果
-            </Button>
-            <Button onClick={() => navigate("/dark-triad")}>開始測驗</Button>
+            {profileLocked && !hasDarkTriadRecord ? (
+              <Button onClick={() => navigate("/results")}>查看 Results</Button>
+            ) : (
+              <>
+                <Button variant="secondary" onClick={handleSkip} disabled={profileLocked}>
+                  跳過直接看結果
+                </Button>
+                <Button onClick={() => navigate("/dark-triad")}>
+                  {hasDarkTriadRecord ? "查看作答" : "開始測驗"}
+                </Button>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
