@@ -19,7 +19,7 @@
 | `cloudflared-config.yml` | Tunnel 設定 | `~/.cloudflared/config.yml` |
 | `backend.env.production.example` | 後端環境變數範本 | 複製成 `backend/.env` |
 
-> 預設專案放在 Pi 的 `/home/keye/app`、使用者為 `keye`。若不同，請一併修改上面各檔內的路徑/使用者。
+> 預設專案放在 Pi 的 `/home/keye/webapp`、使用者為 `keye`。若不同，請一併修改上面各檔內的路徑/使用者。
 
 ---
 
@@ -36,7 +36,7 @@ sudo apt install -y nodejs
 ## 1. 取得程式碼
 
 ```bash
-mkdir -p /home/keye/app && cd /home/keye/app
+mkdir -p /home/keye/webapp && cd /home/keye/webapp
 git clone <你的 repo 網址> .
 git checkout main        # 或你要部署的分支
 ```
@@ -44,7 +44,7 @@ git checkout main        # 或你要部署的分支
 ## 2. 後端
 
 ```bash
-cd /home/keye/app/backend
+cd /home/keye/webapp/backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
@@ -58,7 +58,7 @@ nano .env                   # 填 SECRET_KEY 與 GEMINI_API_KEY
 
 啟用 uvicorn 服務：
 ```bash
-sudo cp /home/keye/app/deploy/personality.service /etc/systemd/system/
+sudo cp /home/keye/webapp/deploy/personality.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now personality
 sudo systemctl status personality          # 應為 active (running)
@@ -68,7 +68,7 @@ curl http://127.0.0.1:8000/api/health      # 應回 {"ok":true}
 ## 3. 前端
 
 ```bash
-cd /home/keye/app/frontend
+cd /home/keye/webapp/frontend
 npm install
 npm run build          # 產生 dist/
 ```
@@ -78,7 +78,7 @@ npm run build          # 產生 dist/
 ## 4. nginx
 
 ```bash
-sudo cp /home/keye/app/deploy/nginx-psyche-test.conf /etc/nginx/sites-available/psyche-test
+sudo cp /home/keye/webapp/deploy/nginx-psyche-test.conf /etc/nginx/sites-available/psyche-test
 sudo ln -s /etc/nginx/sites-available/psyche-test /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default     # 移除預設站台
 sudo nginx -t && sudo systemctl reload nginx
@@ -98,7 +98,7 @@ cloudflared tunnel login                 # 瀏覽器授權 psyche-test.com
 cloudflared tunnel create personality    # 產生 ~/.cloudflared/<tunnel-id>.json
 
 # 設定檔
-cp /home/keye/app/deploy/cloudflared-config.yml ~/.cloudflared/config.yml
+cp /home/keye/webapp/deploy/cloudflared-config.yml ~/.cloudflared/config.yml
 nano ~/.cloudflared/config.yml           # 把 <tunnel-id> 換成實際檔名 id
 
 # 綁定 DNS（在 Cloudflare 自動建立 CNAME）
@@ -121,7 +121,7 @@ sudo systemctl status cloudflared
 
 **更新部署：**
 ```bash
-cd /home/keye/app && git pull
+cd /home/keye/webapp && git pull
 # 後端有改：
 cd backend && source .venv/bin/activate && pip install -r requirements.txt
 sudo systemctl restart personality
@@ -139,8 +139,8 @@ sudo tail -f /var/log/nginx/error.log  # nginx
 
 **備份**（重要：SQLite 與聊天紀錄）：
 ```bash
-cp /home/keye/app/backend/personality_paradox.db ~/backup/pp-$(date +%F).db
-tar czf ~/backup/chat-$(date +%F).tgz /home/keye/app/backend/data/chat_histories
+cp /home/keye/webapp/backend/personality_paradox.db ~/backup/pp-$(date +%F).db
+tar czf ~/backup/chat-$(date +%F).tgz /home/keye/webapp/backend/data/chat_histories
 ```
 
 ## Cloudflare 後台建議設定

@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 User=keye
-WorkingDirectory=/home/keye/app/backend
-EnvironmentFile=/home/keye/app/backend/.env
-ExecStart=/home/keye/app/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+WorkingDirectory=/home/keye/webapp/backend
+EnvironmentFile=/home/keye/webapp/backend/.env
+ExecStart=/home/keye/webapp/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 Restart=always
 RestartSec=3
 
