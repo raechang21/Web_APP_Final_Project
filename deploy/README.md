@@ -124,7 +124,13 @@ sudo systemctl status cloudflared
 
 ## 日常維運
 
-**更新部署：**
+**更新部署（推薦：一鍵腳本）：**
+```bash
+bash ~/webapp/deploy/update.sh
+```
+它會 `git pull`，並依這次改到的層自動處理：後端相依變了就 `pip install`、後端程式變了就重啟 `personality`、前端變了就（必要時 `npm install` 後）重新 `build`、nginx 設定變了就套用並 reload。沒有變更時直接結束。
+
+**手動更新（想自己控制每一步時）：**
 ```bash
 cd /home/keye/webapp && git pull
 # 後端有改：
