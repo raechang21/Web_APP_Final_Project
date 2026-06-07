@@ -106,10 +106,15 @@ cloudflared tunnel route dns personality psyche-test.com
 cloudflared tunnel route dns personality www.psyche-test.com
 
 # 裝成開機服務
+# 注意：service install 以 root 執行，會找 /etc/cloudflared/config.yml，
+# 不是你家目錄的 ~/.cloudflared/config.yml，所以要先複製過去。
+sudo mkdir -p /etc/cloudflared
+sudo cp ~/.cloudflared/config.yml /etc/cloudflared/config.yml
 sudo cloudflared service install
 sudo systemctl enable --now cloudflared
 sudo systemctl status cloudflared
 ```
+> `config.yml` 裡的 `credentials-file:` 指向 `/home/keye/.cloudflared/<id>.json` 即可，root 讀得到，不必搬移那個憑證檔。
 
 ## 6. 驗證
 
