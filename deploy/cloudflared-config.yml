@@ -1,0 +1,16 @@
+# 複製到 Pi 的 ~/.cloudflared/config.yml
+# 先執行：
+#   cloudflared tunnel login
+#   cloudflared tunnel create personality
+# 上面會在 ~/.cloudflared/ 產生一個 <tunnel-id>.json 憑證檔，
+# 把下面的 <tunnel-id> 換成實際值。
+
+tunnel: personality
+credentials-file: /home/keye/.cloudflared/<tunnel-id>.json
+
+ingress:
+  - hostname: psyche-test.com
+    service: http://localhost:80
+  - hostname: www.psyche-test.com
+    service: http://localhost:80
+  - service: http_status:404

@@ -23,7 +23,7 @@ app.add_middleware(
     session_cookie="pp_session",
     max_age=settings.SESSION_MAX_AGE,
     same_site="lax",
-    https_only=False,
+    https_only=settings.COOKIE_SECURE,
 )
 
 app.add_middleware(

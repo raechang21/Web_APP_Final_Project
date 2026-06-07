@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-3.1-flash-lite"
     GEMINI_TIMEOUT: int = 60
     SESSION_MAX_AGE: int = 60 * 60 * 2  # 2 hours
+    # Set to True in production (served over HTTPS) so the session cookie
+    # carries the Secure flag; keep False for local http:// development.
+    COOKIE_SECURE: bool = False
 
 
 settings = Settings()
